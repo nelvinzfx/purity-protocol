@@ -18,6 +18,39 @@
     background: #374151;
 }
 
+/* Auto-hide scrollbar */
+.scrollbar-autohide {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+.scrollbar-autohide::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-autohide::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-autohide::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.scrollbar-autohide:hover {
+    scrollbar-color: #374151 transparent;
+}
+
+.scrollbar-autohide:hover::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+
+.scrollbar-autohide:hover::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
 /* Thin scrollbar for terminal */
 .scrollbar-thin::-webkit-scrollbar {
     width: 4px;
