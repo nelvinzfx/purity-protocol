@@ -5,6 +5,7 @@
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
     background: #030304;
@@ -15,6 +16,51 @@
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #374151;
+}
+
+/* Auto-hide scrollbar */
+.scrollbar-autohide {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+.scrollbar-autohide::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-autohide::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-autohide::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.scrollbar-autohide:hover {
+    scrollbar-color: #374151 transparent;
+}
+
+.scrollbar-autohide:hover::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+
+.scrollbar-autohide:hover::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
+/* Thin scrollbar for terminal */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 /* Preloader: Charging Bolt */
@@ -167,146 +213,182 @@ body {
 .telemetry-value {
     font-family: 'JetBrains Mono', monospace;
 }
-/* --- Unique Badge Styles --- */
 
-/* Base Badge */
+/* Addiction Badge Styles - Outline Version */
 .addiction-badge {
     position: relative;
-    overflow: hidden;
+    background: transparent;
+    border: 2px solid;
+    backdrop-filter: blur(4px);
     transition: all 0.3s ease;
-    text-transform: uppercase;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
 }
 
-/* PMO: Glitch / Danger */
+.addiction-badge:hover {
+    transform: translateY(-2px);
+    backdrop-filter: blur(8px);
+}
+
+/* PMO Badge - Red Pulse */
 .badge-pmo {
-    background: rgba(239, 68, 68, 0.1);
-    color: #fca5a5;
-    border-color: rgba(239, 68, 68, 0.3);
-    box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 0 10px rgba(239, 68, 68, 0.1);
+    animation: pulse-red 2s ease-in-out infinite;
 }
+
 .badge-pmo:hover {
-    animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
-    background: rgba(239, 68, 68, 0.2);
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
-}
-@keyframes glitch-skew {
-    0% { transform: skew(0deg); }
-    20% { transform: skew(-2deg); }
-    40% { transform: skew(2deg); }
-    60% { transform: skew(-1deg); }
-    80% { transform: skew(1deg); }
-    100% { transform: skew(0deg); }
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
 }
 
-/* Social Media: Notification / Connection */
-.badge-social {
+@keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 0 10px rgba(239, 68, 68, 0.1); }
+    50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.2); }
+}
+
+/* Social Media Badge - Blue Shimmer */
+.badge-social_media {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(59, 130, 246, 0.1);
+    animation: shimmer-blue 3s ease-in-out infinite;
+}
+
+.badge-social_media:hover {
     background: rgba(59, 130, 246, 0.1);
-    color: #93c5fd;
-    border-color: rgba(59, 130, 246, 0.3);
-}
-.badge-social:hover {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-    animation: pulse-blue 1.5s infinite;
-}
-@keyframes pulse-blue {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
-/* Reels: Shimmer / Hypnotic */
+@keyframes shimmer-blue {
+    0%, 100% { border-color: #3b82f6; }
+    50% { border-color: #60a5fa; }
+}
+
+/* Reels Badge - Purple Wave */
 .badge-reels {
-    background: rgba(139, 92, 246, 0.1);
-    color: #c4b5fd;
-    border-color: rgba(139, 92, 246, 0.3);
-    background-size: 200% auto;
-    background-image: linear-gradient(125deg, rgba(139,92,246,0.1) 0%, rgba(139,92,246,0.3) 50%, rgba(139,92,246,0.1) 100%);
-}
-.badge-reels:hover {
-    animation: shine-scroll 2s linear infinite;
     border-color: #8b5cf6;
-}
-@keyframes shine-scroll {
-    to { background-position: 200% center; }
+    color: #8b5cf6;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3), inset 0 0 10px rgba(139, 92, 246, 0.1);
+    animation: wave-purple 2.5s ease-in-out infinite;
 }
 
-/* Gaming: Pixel / Retro */
+.badge-reels:hover {
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+@keyframes wave-purple {
+    0%, 100% { transform: translateY(0); border-color: #8b5cf6; }
+    50% { transform: translateY(-2px); border-color: #a78bfa; }
+}
+
+/* Gaming Badge - Green Glitch */
 .badge-gaming {
-    background: rgba(16, 185, 129, 0.1);
-    color: #6ee7b7;
-    border-color: rgba(16, 185, 129, 0.3);
-    border-style: dashed;
+    border-color: #10b981;
+    color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.1);
+    animation: glitch-green 4s steps(2) infinite;
 }
+
 .badge-gaming:hover {
-    box-shadow: 0 0 8px #10b981;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
-    transform: translateY(-1px);
+    background: rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
-/* Smoking: Smoke / Haze */
+@keyframes glitch-green {
+    0%, 90%, 100% { transform: translate(0); border-color: #10b981; }
+    92% { transform: translate(-1px, 1px); border-color: #34d399; }
+    94% { transform: translate(1px, -1px); border-color: #059669; }
+}
+
+/* Smoking Badge - Gray Smoke */
 .badge-smoking {
-    background: rgba(107, 114, 128, 0.1);
-    color: #d1d5db;
-    border-color: rgba(107, 114, 128, 0.3);
+    border-color: #6b7280;
+    color: #6b7280;
+    box-shadow: 0 0 10px rgba(107, 114, 128, 0.3), inset 0 0 10px rgba(107, 114, 128, 0.1);
+    animation: smoke-drift 3s ease-in-out infinite;
 }
+
 .badge-smoking:hover {
-    filter: blur(0.5px);
-    background: rgba(107, 114, 128, 0.2);
-    animation: smoke-drift 3s infinite alternate;
+    background: rgba(107, 114, 128, 0.1);
+    box-shadow: 0 0 20px rgba(107, 114, 128, 0.5);
 }
+
 @keyframes smoke-drift {
-    from { opacity: 0.8; }
-    to { opacity: 1; text-shadow: 0 0 5px white; }
+    0%, 100% { opacity: 1; border-color: #6b7280; }
+    50% { opacity: 0.7; border-color: #9ca3af; }
 }
 
-/* Alcohol: Liquid / Sway */
+/* Alcohol Badge - Orange Glow */
 .badge-alcohol {
-    background: rgba(245, 158, 11, 0.1);
-    color: #fcd34d;
-    border-color: rgba(245, 158, 11, 0.3);
+    border-color: #f59e0b;
+    color: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.1);
+    animation: glow-orange 2s ease-in-out infinite;
 }
+
 .badge-alcohol:hover {
-    animation: liquid-sway 2s ease-in-out infinite;
-    background: rgba(245, 158, 11, 0.2);
-}
-@keyframes liquid-sway {
-    0%, 100% { border-radius: 4px 4px 4px 4px; }
-    50% { border-radius: 8px 2px 8px 2px; }
+    background: rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
 }
 
-/* Junk Food: Greasy / Heavy */
-.badge-junk {
+@keyframes glow-orange {
+    0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.1); }
+    50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.2); }
+}
+
+/* Junk Food Badge - Orange Bounce */
+.badge-junk_food {
+    border-color: #f97316;
+    color: #f97316;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3), inset 0 0 10px rgba(249, 115, 22, 0.1);
+    animation: bounce-food 1.5s ease-in-out infinite;
+}
+
+.badge-junk_food:hover {
     background: rgba(249, 115, 22, 0.1);
-    color: #fdba74;
-    border-color: rgba(249, 115, 22, 0.3);
-    border-bottom-width: 3px;
-}
-.badge-junk:hover {
-    transform: rotate(2deg);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
 }
 
-/* Shopping: Shine / Sparkle */
+@keyframes bounce-food {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Shopping Badge - Pink Sparkle */
 .badge-shopping {
-    background: rgba(236, 72, 153, 0.1);
-    color: #f9a8d4;
-    border-color: rgba(236, 72, 153, 0.3);
-}
-.badge-shopping:hover {
-    box-shadow: 0 0 10px #ec4899;
-    background: rgba(236, 72, 153, 0.2);
+    border-color: #ec4899;
+    color: #ec4899;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.3), inset 0 0 10px rgba(236, 72, 153, 0.1);
+    animation: sparkle-pink 2s ease-in-out infinite;
 }
 
-/* Default / Custom */
-.badge-default {
-    background: rgba(255, 255, 255, 0.05);
-    color: #9ca3af;
-    border-color: rgba(255, 255, 255, 0.1);
+.badge-shopping:hover {
+    background: rgba(236, 72, 153, 0.1);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+}
+
+@keyframes sparkle-pink {
+    0%, 100% { border-color: #ec4899; }
+    25% { border-color: #f472b6; }
+    50% { border-color: #ec4899; }
+    75% { border-color: #f472b6; }
+}
+
+/* Custom Badge - Neutral Fade */
+.badge-custom {
+    border-color: #6b7280;
+    color: #6b7280;
+    box-shadow: 0 0 8px rgba(107, 114, 128, 0.2), inset 0 0 8px rgba(107, 114, 128, 0.1);
+    animation: fade-neutral 3s ease-in-out infinite;
+}
+
+.badge-custom:hover {
+    background: rgba(107, 114, 128, 0.1);
+    box-shadow: 0 0 15px rgba(107, 114, 128, 0.4);
+}
+
+@keyframes fade-neutral {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
 }

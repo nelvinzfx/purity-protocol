@@ -15,14 +15,14 @@ const CONFIG = {
         { id: 'exercise', text: 'Physical Training', icon: 'fa-dumbbell' }
     ],
     addictionTypes: [
-        { id: 'pmo', name: 'PMO (Porn/Masturbation)', icon: 'fa-ban', color: '#ef4444', cssClass: 'badge-pmo' },
-        { id: 'social_media', name: 'Social Media', icon: 'fa-mobile-screen', color: '#3b82f6', cssClass: 'badge-social' },
-        { id: 'reels', name: 'Reels/Short Videos', icon: 'fa-video', color: '#8b5cf6', cssClass: 'badge-reels' },
-        { id: 'gaming', name: 'Gaming', icon: 'fa-gamepad', color: '#10b981', cssClass: 'badge-gaming' },
-        { id: 'smoking', name: 'Smoking', icon: 'fa-smoking', color: '#6b7280', cssClass: 'badge-smoking' },
-        { id: 'alcohol', name: 'Alcohol', icon: 'fa-wine-bottle', color: '#f59e0b', cssClass: 'badge-alcohol' },
-        { id: 'junk_food', name: 'Junk Food', icon: 'fa-burger', color: '#f97316', cssClass: 'badge-junk' },
-        { id: 'shopping', name: 'Shopping', icon: 'fa-cart-shopping', color: '#ec4899', cssClass: 'badge-shopping' }
+        { id: 'pmo', name: 'PMO (Porn/Masturbation)', icon: 'fa-ban', color: '#ef4444' },
+        { id: 'social_media', name: 'Social Media', icon: 'fa-mobile-screen', color: '#3b82f6' },
+        { id: 'reels', name: 'Reels/Short Videos', icon: 'fa-video', color: '#8b5cf6' },
+        { id: 'gaming', name: 'Gaming', icon: 'fa-gamepad', color: '#10b981' },
+        { id: 'smoking', name: 'Smoking', icon: 'fa-smoking', color: '#6b7280' },
+        { id: 'alcohol', name: 'Alcohol', icon: 'fa-wine-bottle', color: '#f59e0b' },
+        { id: 'junk_food', name: 'Junk Food', icon: 'fa-burger', color: '#f97316' },
+        { id: 'shopping', name: 'Shopping', icon: 'fa-cart-shopping', color: '#ec4899' }
     ],
     avatars: [
         'fa-user-astronaut', 'fa-user-ninja', 'fa-user-secret', 'fa-dragon',
@@ -159,46 +159,92 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- CLI / Terminal Logic ---
-const consoleHistory = document.getElementById('console-history');
-const cmdInput = document.getElementById('cmd-input');
-const typeWriterArea = document.getElementById('typewriter-text');
+let commandHistory = [];
+let historyIndex = -1;
 
 function initCLI() {
-    // Initial System Boot Message
-    const bootText = "SYSTEM_READY. TYPE 'help' FOR COMMANDS.";
-    let i = 0;
-    const type = () => {
-        if (i < bootText.length) {
-            typeWriterArea.innerHTML += bootText.charAt(i);
-            i++;
-            setTimeout(type, 30);
-        } else {
-            cmdInput.focus();
-        }
-    };
-    type();
+    const consoleHistory = document.getElementById('console-history');
+    const cmdInput = document.getElementById('cmd-input');
+    
+    if (!consoleHistory || !cmdInput) {
+        console.error('Terminal elements not found');
+        return;
+    }
 
-    // Listener
+    printToConsole('PURITY PROTOCOL v2.3 // NEXUS TERMINAL', 'system');
+    printToConsole('Type "help" for available commands', 'info');
+    printToConsole('─'.repeat(50), 'divider');
+
+    cmdInput.focus();
+
+    // Command execution
     cmdInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const cmd = cmdInput.value.trim();
             if (cmd) {
-                printToConsole(`usr@nexus:~$ ${cmd}`, 'input');
+                commandHistory.unshift(cmd);
+                historyIndex = -1;
+                printToConsole(`root@nexus:~$ ${cmd}`, 'input');
                 handleCommand(cmd);
             }
             cmdInput.value = '';
-            // Auto scroll to bottom
-            const container = document.getElementById('console-output');
-            container.scrollTop = container.scrollHeight;
+            scrollToBottom();
         }
+        
+        // Arrow up - previous command
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                cmdInput.value = commandHistory[historyIndex];
+            }
+        }
+        
+        // Arrow down - next command
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                historyIndex--;
+                cmdInput.value = commandHistory[historyIndex];
+            } else {
+                historyIndex = -1;
+                cmdInput.value = '';
+            }
+        }
+    });
+
+    // Focus on click
+    document.getElementById('console-output').addEventListener('click', () => {
+        cmdInput.focus();
     });
 }
 
 function printToConsole(text, type = 'system') {
+    const consoleHistory = document.getElementById('console-history');
+    if (!consoleHistory) return;
+    
     const div = document.createElement('div');
-    div.className = type === 'input' ? 'text-gray-500 mb-1' : 'text-accent mb-2 leading-tight';
-    div.innerText = text;
+    div.className = 'mb-1 leading-relaxed';
+    
+    const colors = {
+        input: 'text-gray-500',
+        system: 'text-accent',
+        success: 'text-green-400',
+        error: 'text-red-400',
+        info: 'text-gray-400',
+        divider: 'text-gray-800'
+    };
+    
+    div.className += ` ${colors[type] || 'text-gray-300'}`;
+    div.textContent = text;
     consoleHistory.appendChild(div);
+}
+
+function scrollToBottom() {
+    const output = document.getElementById('console-output');
+    if (output) {
+        output.scrollTop = output.scrollHeight;
+    }
 }
 
 function handleCommand(rawCmd) {
@@ -208,49 +254,122 @@ function handleCommand(rawCmd) {
 
     switch (cmd) {
         case 'help':
-            printToConsole("AVAILABLE COMMANDS:\n> status : Show current stats\n> commit : Daily check-in\n> log [msg] : Quick journal entry\n> panic : Emergency mode\n> clear : Clear terminal");
+            printToConsole('─'.repeat(50), 'divider');
+            printToConsole('AVAILABLE COMMANDS:', 'system');
+            printToConsole('  status      - Show current streak and stats', 'info');
+            printToConsole('  commit      - Execute daily check-in', 'info');
+            printToConsole('  log [msg]   - Quick journal entry', 'info');
+            printToConsole('  panic       - Trigger emergency mode', 'info');
+            printToConsole('  profile     - Show profile information', 'info');
+            printToConsole('  stats       - Display detailed statistics', 'info');
+            printToConsole('  achievements- List unlocked achievements', 'info');
+            printToConsole('  clear       - Clear terminal output', 'info');
+            printToConsole('  export      - Export data backup', 'info');
+            printToConsole('─'.repeat(50), 'divider');
             break;
         
         case 'status':
             const dur = moment.duration(moment().diff(moment(state.startDate)));
-            printToConsole(`STREAK: ${Math.floor(dur.asDays())} DAYS\nRANK: ${els.rankTitle.innerText}\nBEST: ${els.bestStreak.innerText}`);
+            const days = Math.floor(dur.asDays());
+            printToConsole('─'.repeat(50), 'divider');
+            printToConsole(`CURRENT STREAK: ${days} days`, 'success');
+            printToConsole(`RANK: ${els.rankTitle.innerText}`, 'system');
+            printToConsole(`BEST STREAK: ${els.bestStreak.innerText}`, 'system');
+            printToConsole(`CHECK-INS: ${state.totalCheckins}`, 'info');
+            printToConsole(`JOURNALS: ${state.journalEntries.length}`, 'info');
+            printToConsole('─'.repeat(50), 'divider');
             break;
 
         case 'commit':
             dailyCheckin();
-            printToConsole(">> CHECK-IN CONFIRMED. STAY STRONG.");
+            printToConsole('✓ Daily check-in executed', 'success');
             break;
 
         case 'panic':
             triggerEmergency();
-            printToConsole(">> EMERGENCY PROTOCOL INITIATED.");
+            printToConsole('✓ Emergency protocol activated', 'success');
             break;
 
         case 'log':
             if (!args) {
-                printToConsole("ERROR: Message required. Usage: log [message]", 'error');
+                printToConsole('ERROR: Message required. Usage: log [message]', 'error');
             } else {
-                // Add to state directly
                 const entry = { id: Date.now(), date: new Date().toISOString(), text: args };
                 state.journalEntries.unshift(entry);
                 saveState();
                 renderJournalHistory();
-                printToConsole(">> ENTRY SAVED TO CHRONICLES.");
+                printToConsole('✓ Journal entry saved', 'success');
             }
+            break;
+
+        case 'profile':
+            printToConsole('─'.repeat(50), 'divider');
+            printToConsole(`USERNAME: ${state.profile.username}`, 'system');
+            printToConsole(`FIGHTING: ${state.profile.addictionTypes.join(', ')}`, 'info');
+            printToConsole(`BADGES: ${state.unlockedAchievements.length}/${CONFIG.achievements.length}`, 'info');
+            printToConsole('─'.repeat(50), 'divider');
+            break;
+
+        case 'stats':
+            printToConsole('─'.repeat(50), 'divider');
+            printToConsole('DETAILED STATISTICS:', 'system');
+            printToConsole(`Total Resets: ${state.relapseHistory.length}`, 'info');
+            printToConsole(`Total Check-ins: ${state.totalCheckins}`, 'info');
+            printToConsole(`Journal Entries: ${state.journalEntries.length}`, 'info');
+            printToConsole(`Panic Button Uses: ${state.panicButtonUses}`, 'info');
+            printToConsole(`Activity Logs: ${state.activityLog.length}`, 'info');
+            printToConsole('─'.repeat(50), 'divider');
+            break;
+
+        case 'achievements':
+            printToConsole('─'.repeat(50), 'divider');
+            printToConsole(`UNLOCKED: ${state.unlockedAchievements.length}/${CONFIG.achievements.length}`, 'system');
+            CONFIG.achievements.forEach(ach => {
+                const unlocked = state.unlockedAchievements.includes(ach.id);
+                printToConsole(`${unlocked ? '✓' : '✗'} ${ach.name} - ${ach.desc}`, unlocked ? 'success' : 'info');
+            });
+            printToConsole('─'.repeat(50), 'divider');
             break;
             
         case 'clear':
             consoleHistory.innerHTML = '';
+            printToConsole('Terminal cleared', 'info');
             break;
 
-        case 'sudo':
-            printToConsole("NICE TRY. ACCESS DENIED.");
+        case 'export':
+            exportData();
+            printToConsole('✓ Data exported successfully', 'success');
+            break;
+
+        case 'ls':
+            printToConsole('dashboard  analytics  achievements  leaderboard  journal  resources  settings', 'info');
+            break;
+
+        case 'whoami':
+            printToConsole(state.profile.username, 'system');
+            break;
+
+        case 'date':
+            printToConsole(moment().format('YYYY-MM-DD HH:mm:ss'), 'info');
+            break;
+
+        case 'uptime':
+            const uptime = moment.duration(moment().diff(moment(state.startDate)));
+            printToConsole(`System uptime: ${Math.floor(uptime.asDays())} days, ${uptime.hours()} hours, ${uptime.minutes()} minutes`, 'info');
             break;
 
         default:
-            printToConsole(`ERROR: Command '${cmd}' not recognized. Type 'help'.`, 'error');
+            printToConsole(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
     }
 }
+
+window.clearTerminal = function() {
+    const consoleHistory = document.getElementById('console-history');
+    if (consoleHistory) {
+        consoleHistory.innerHTML = '';
+        printToConsole('Terminal cleared', 'info');
+    }
+};
 
 // --- Preloader Logic ---
 function handlePreloader() {
@@ -1202,14 +1321,13 @@ function updateProfileUI() {
         sidebarAddictions.innerHTML = state.profile.addictionTypes.map(type => {
             const addiction = CONFIG.addictionTypes.find(a => a.id === type);
             if (addiction) {
-                return `<span class="addiction-badge ${addiction.cssClass}">
-                            <i class="fa-solid ${addiction.icon} text-[0.6rem]"></i>
-                            ${addiction.name.split(' ')[0]}
-                        </span>`;
+                return `<span class="addiction-badge badge-${type} px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide">
+                    <i class="fa-solid ${addiction.icon} mr-1"></i>${addiction.name.split(' ')[0]}
+                </span>`;
             }
-            return `<span class="addiction-badge badge-default">
-                        ${type}
-                    </span>`;
+            return `<span class="addiction-badge badge-custom px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide">
+                <i class="fa-solid fa-circle mr-1"></i>${type}
+            </span>`;
         }).join('');
     }
 }
