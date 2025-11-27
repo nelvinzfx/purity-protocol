@@ -29,6 +29,20 @@ const CONFIG = {
         'fa-robot', 'fa-skull', 'fa-ghost', 'fa-cat', 'fa-dog', 'fa-crow',
         'fa-fire', 'fa-bolt', 'fa-shield', 'fa-crown', 'fa-star'
     ],
+    stoicQuotes: [
+        "We suffer more often in imagination than in reality. — Seneca",
+        "You have power over your mind - not outside events. Realize this, and you will find strength. — Marcus Aurelius",
+        "The best revenge is to be unlike him who performed the injury. — Marcus Aurelius",
+        "Discipline is doing what needs to be done, even if you don't want to do it.",
+        "A gem cannot be polished without friction, nor a man perfected without trials. — Seneca",
+        "Waste no more time arguing about what a good man should be. Be one. — Marcus Aurelius",
+        "It is not the man who has too little, but the man who craves more, that is poor. — Seneca",
+        "The soul becomes dyed with the color of its thoughts. — Marcus Aurelius",
+        "Freedom is the only worthy goal in life. It is won by disregarding things that lie beyond our control. — Epictetus",
+        "Man conquers the world by conquering himself. — Zeno",
+        "He who is brave is free. — Seneca",
+        "If it is not right do not do it; if it is not true do not say it. — Marcus Aurelius"
+    ],
     achievements: [
         { id: 'first_day', name: 'First Step', desc: 'Complete your first day', icon: 'fa-seedling', condition: (s) => getCurrentStreak(s) >= 1 },
         { id: 'week_warrior', name: 'Week Warrior', desc: 'Reach 7 day streak', icon: 'fa-fire', condition: (s) => getCurrentStreak(s) >= 7 },
@@ -297,6 +311,13 @@ function initUI() {
     renderChecklist();
     updateProfileUI();
     
+    // Set random quote
+    const quoteEl = document.getElementById('stoic-quote-ticker');
+    if (quoteEl) {
+        const randomQuote = CONFIG.stoicQuotes[Math.floor(Math.random() * CONFIG.stoicQuotes.length)];
+        quoteEl.innerText = `:: "${randomQuote}" ::`;
+    }
+
     // Event Listeners
     setupNavigation();
     
@@ -307,11 +328,27 @@ function initUI() {
     els.closeEmergencyBtn.addEventListener('click', closeEmergency);
     els.emergencyCalmBtn.addEventListener('click', closeEmergency);
     
+    // Meditation handlers
+    const medClose = document.getElementById('close-meditation');
+    const medStart = document.getElementById('meditation-start-btn');
+    const medReset = document.getElementById('meditation-reset-btn');
+
+    if (medClose) medClose.addEventListener('click', closeMeditationModal);
+    if (medStart) medStart.addEventListener('click', toggleMeditationTimer);
+    if (medReset) medReset.addEventListener('click', resetMeditationTimer);
+
     els.relapseBtn.addEventListener('click', confirmRelapse);
     els.checkinBtn.addEventListener('click', dailyCheckin);
 
     els.exportBtn.addEventListener('click', exportData);
     els.importFile.addEventListener('change', importData);
+
+    // Initial check for daily commit
+    const today = moment().format('YYYY-MM-DD');
+    if (state.lastCheckin === today) {
+        els.checkinBtn.innerHTML = `<i class="fa-solid fa-check"></i> COMPLETE`;
+        els.checkinBtn.classList.add('bg-green-500', 'text-white');
+    }
 
     // Profile handlers
     const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -517,6 +554,18 @@ function renderChecklist() {
             toggleTask(task.id, e.target.checked);
         });
 
+        // Add special handler for meditation task
+        if (task.id === 'meditate' && !isChecked) {
+            div.style.cursor = 'pointer';
+            div.title = "Click to start session";
+            div.addEventListener('click', (e) => {
+                // Prevent triggering if clicking the checkbox directly
+                if (e.target.type !== 'checkbox') {
+                    openMeditationModal();
+                }
+            });
+        }
+
         els.checklistContainer.appendChild(div);
     });
 }
@@ -580,18 +629,39 @@ function renderJournalHistory() {
         return;
     }
 
-    els.journalHistoryList.innerHTML = state.journalEntries.map(entry => {
+    els.journalHistoryList.innerHTML = '';
+
+    state.journalEntries.forEach(entry => {
         const date = moment(entry.date);
-        return `
-            <div class="bg-surface border border-glassBorder rounded-xl p-4 hover:bg-white/5 transition-colors">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-accent text-xs font-mono">${date.format('MMM D, YYYY @ h:mm A')}</span>
-                    <button onclick="deleteEntry(${entry.id})" class="text-gray-600 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>
-                </div>
-                <p class="text-gray-300 text-sm whitespace-pre-wrap">${entry.text}</p>
-            </div>
-        `;
-    }).join('');
+
+        // Create elements programmatically to avoid XSS
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'bg-surface border border-glassBorder rounded-xl p-4 hover:bg-white/5 transition-colors';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'flex justify-between items-start mb-2';
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'text-accent text-xs font-mono';
+        dateSpan.textContent = date.format('MMM D, YYYY @ h:mm A');
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'text-gray-600 hover:text-red-500 transition-colors';
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        deleteBtn.onclick = () => deleteEntry(entry.id);
+
+        headerDiv.appendChild(dateSpan);
+        headerDiv.appendChild(deleteBtn);
+
+        const textP = document.createElement('p');
+        textP.className = 'text-gray-300 text-sm whitespace-pre-wrap';
+        textP.textContent = entry.text; // Safe text insertion
+
+        entryDiv.appendChild(headerDiv);
+        entryDiv.appendChild(textP);
+
+        els.journalHistoryList.appendChild(entryDiv);
+    });
 }
 
 window.deleteEntry = function(id) {
@@ -616,14 +686,29 @@ function triggerEmergency() {
     els.breathCircle.classList.add('breathing-active');
     
     const cycle = () => {
-        setTimeout(() => { els.breathText.innerText = "HOLD"; }, 4000);
-        setTimeout(() => { els.breathText.innerText = "EXHALE"; }, 8000);
-        setTimeout(() => { els.breathText.innerText = "INHALE"; }, 12000);
+        // 4-7-8 Breathing Technique
+        // Inhale: 4s, Hold: 7s, Exhale: 8s = Total 19s
+
+        els.breathText.innerText = "INHALE (4s)";
+        els.breathCircle.style.transition = 'transform 4s ease-in-out, opacity 4s ease-in-out';
+        els.breathCircle.style.transform = 'scale(1.2)';
+        els.breathCircle.style.opacity = '1';
+
+        setTimeout(() => {
+            els.breathText.innerText = "HOLD (7s)";
+            // Hold state - maintain scale
+        }, 4000);
+
+        setTimeout(() => {
+            els.breathText.innerText = "EXHALE (8s)";
+            els.breathCircle.style.transition = 'transform 8s ease-in-out, opacity 8s ease-in-out';
+            els.breathCircle.style.transform = 'scale(0.8)';
+            els.breathCircle.style.opacity = '0.7';
+        }, 11000); // 4 + 7
     };
     
-    els.breathText.innerText = "INHALE";
     cycle();
-    breathInterval = setInterval(cycle, 12000);
+    breathInterval = setInterval(cycle, 19000); // 4 + 7 + 8 = 19s
 }
 
 function closeEmergency() {
@@ -631,6 +716,99 @@ function closeEmergency() {
     els.emergencyOverlay.style.opacity = '0';
     els.breathCircle.classList.remove('breathing-active');
     clearInterval(breathInterval);
+}
+
+// --- Meditation Logic ---
+let medInterval;
+let medTimeLeft = 600; // 10 minutes in seconds
+let medIsRunning = false;
+let medTotalDuration = 600;
+
+function openMeditationModal() {
+    const modal = document.getElementById('meditation-overlay');
+    modal.style.pointerEvents = 'auto';
+    modal.style.opacity = '1';
+}
+
+function closeMeditationModal() {
+    const modal = document.getElementById('meditation-overlay');
+    modal.style.pointerEvents = 'none';
+    modal.style.opacity = '0';
+    if (medIsRunning) toggleMeditationTimer(); // Pause if running
+}
+
+function toggleMeditationTimer() {
+    const btn = document.getElementById('meditation-start-btn');
+    const icon = btn.querySelector('i');
+
+    if (medIsRunning) {
+        clearInterval(medInterval);
+        medIsRunning = false;
+        icon.className = 'fa-solid fa-play text-xl ml-1';
+        document.getElementById('meditation-status').innerText = 'PAUSED';
+    } else {
+        medIsRunning = true;
+        icon.className = 'fa-solid fa-pause text-xl';
+        document.getElementById('meditation-status').innerText = 'SYNCING...';
+
+        medInterval = setInterval(() => {
+            medTimeLeft--;
+            updateMeditationUI();
+
+            if (medTimeLeft <= 0) {
+                completeMeditation();
+            }
+        }, 1000);
+    }
+}
+
+function resetMeditationTimer() {
+    if (medIsRunning) toggleMeditationTimer();
+    medTimeLeft = medTotalDuration;
+    updateMeditationUI();
+    document.getElementById('meditation-status').innerText = 'READY';
+    // Reset ring animation
+    document.getElementById('meditation-ring').style.animation = 'none';
+}
+
+function updateMeditationUI() {
+    const mins = Math.floor(medTimeLeft / 60);
+    const secs = medTimeLeft % 60;
+    document.getElementById('meditation-timer').innerText = `${pad(mins)}:${pad(secs)}`;
+
+    // Update ring progress (optional visual flair)
+    // For now simple rotation or just leave it
+}
+
+function completeMeditation() {
+    clearInterval(medInterval);
+    medIsRunning = false;
+    document.getElementById('meditation-status').innerText = 'COMPLETE';
+    document.getElementById('meditation-status').classList.remove('animate-pulse');
+
+    // Play sound
+    const audio = document.getElementById('bell-sound');
+    if (audio) audio.play();
+
+    // Auto-check task
+    if (!state.dailyChecklist[moment().format('YYYY-MM-DD')]) {
+        state.dailyChecklist[moment().format('YYYY-MM-DD')] = [];
+    }
+    if (!state.dailyChecklist[moment().format('YYYY-MM-DD')].includes('meditate')) {
+        toggleTask('meditate', true);
+        confetti({
+            particleCount: 200,
+            spread: 120,
+            origin: { y: 0.6 },
+            colors: ['#8b5cf6', '#fbbf24']
+        });
+    }
+
+    // Auto close after delay
+    setTimeout(() => {
+        closeMeditationModal();
+        resetMeditationTimer();
+    }, 4000);
 }
 
 // --- Chart Logic ---
