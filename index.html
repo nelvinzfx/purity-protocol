@@ -165,9 +165,21 @@
                 <i class="fa-solid fa-chart-line w-6 text-center group-hover:text-accent transition-colors"></i>
                 <span class="font-medium">Analytics</span>
             </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="achievements">
+                <i class="fa-solid fa-trophy w-6 text-center group-hover:text-gold transition-colors"></i>
+                <span class="font-medium">Achievements</span>
+            </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="leaderboard">
+                <i class="fa-solid fa-ranking-star w-6 text-center group-hover:text-success transition-colors"></i>
+                <span class="font-medium">Leaderboard</span>
+            </button>
             <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="journal">
                 <i class="fa-solid fa-book w-6 text-center group-hover:text-secondary transition-colors"></i>
                 <span class="font-medium">Chronicles</span>
+            </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="resources">
+                <i class="fa-solid fa-link w-6 text-center group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">Resources</span>
             </button>
             <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="settings">
                 <i class="fa-solid fa-sliders w-6 text-center group-hover:text-primary transition-colors"></i>
@@ -394,6 +406,208 @@
                                 <i class="fa-solid fa-lock"></i>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ACHIEVEMENTS -->
+        <section id="view-achievements" class="view-section hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-1">Achievements</h2>
+                <p class="text-gray-500 text-sm">Unlock badges as you progress through your journey</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="achievements-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- VIEW: LEADERBOARD -->
+        <section id="view-leaderboard" class="view-section hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-1">Global Leaderboard</h2>
+                <p class="text-gray-500 text-sm">See how you rank against the community</p>
+            </div>
+
+            <div class="bg-surface border border-glassBorder rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-white">Your Position</h3>
+                    <span class="px-3 py-1 bg-accent/20 text-accent rounded-full text-sm font-mono" id="user-rank">#???</span>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-2xl font-bold text-white" id="user-streak-display">0</p>
+                        <p class="text-xs text-gray-500">Days</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-white" id="user-checkins-display">0</p>
+                        <p class="text-xs text-gray-500">Check-ins</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-white" id="user-badges-display">0</p>
+                        <p class="text-xs text-gray-500">Badges</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                <h3 class="font-semibold text-white mb-4">Top Warriors</h3>
+                <div class="space-y-3" id="leaderboard-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: RESOURCES -->
+        <section id="view-resources" class="view-section hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-1">Resources</h2>
+                <p class="text-gray-500 text-sm">Tools and communities to support your journey</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Communities -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-accent"></i> Communities
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="https://www.reddit.com/r/NoFap/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-brands fa-reddit text-orange-500 text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">r/NoFap</p>
+                                    <p class="text-xs text-gray-500">1M+ members</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://www.reddit.com/r/pornfree/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-brands fa-reddit text-orange-500 text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">r/PornFree</p>
+                                    <p class="text-xs text-gray-500">Recovery focused</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://discord.gg/nofap" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-brands fa-discord text-indigo-500 text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">NoFap Discord</p>
+                                    <p class="text-xs text-gray-500">Real-time support</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Educational -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-secondary"></i> Education
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="https://www.yourbrainonporn.com/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-brain text-primary text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Your Brain On Porn</p>
+                                    <p class="text-xs text-gray-500">Science-based research</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://www.youtube.com/watch?v=wSF82AwSDiU" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-brands fa-youtube text-red-500 text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">The Great Porn Experiment</p>
+                                    <p class="text-xs text-gray-500">TEDx Talk</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://fightthenewdrug.org/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-shield text-success text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Fight The New Drug</p>
+                                    <p class="text-xs text-gray-500">Awareness movement</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-wrench text-gold"></i> Tools
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="https://getcoldturkey.com/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-ban text-danger text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Cold Turkey Blocker</p>
+                                    <p class="text-xs text-gray-500">Website blocker</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://www.headspace.com/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-spa text-accent text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Headspace</p>
+                                    <p class="text-xs text-gray-500">Meditation app</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://www.forestapp.cc/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-tree text-success text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Forest</p>
+                                    <p class="text-xs text-gray-500">Focus timer</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Emergency -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-life-ring text-danger"></i> Emergency
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="https://emergency.nofap.com/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-circle-exclamation text-red-500 text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">NoFap Emergency</p>
+                                    <p class="text-xs text-gray-500">Instant help</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="https://www.7cups.com/" target="_blank" class="block p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">7 Cups</p>
+                                    <p class="text-xs text-gray-500">Free counseling</p>
+                                </div>
+                            </div>
+                        </a>
+                        <button onclick="document.getElementById('panic-btn').click()" class="w-full text-left p-3 bg-glass hover:bg-glassHigh border border-glassBorder rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-triangle-exclamation text-danger text-xl"></i>
+                                <div>
+                                    <p class="text-white font-medium">Panic Mode</p>
+                                    <p class="text-xs text-gray-500">Breathing exercise</p>
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>

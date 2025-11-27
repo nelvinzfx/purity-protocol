@@ -13,8 +13,29 @@ const CONFIG = {
         { id: 'meditate', text: 'Meditation (10m)', icon: 'fa-om' },
         { id: 'journal', text: 'Journal Entry', icon: 'fa-pen' },
         { id: 'exercise', text: 'Physical Training', icon: 'fa-dumbbell' }
+    ],
+    achievements: [
+        { id: 'first_day', name: 'First Step', desc: 'Complete your first day', icon: 'fa-seedling', condition: (s) => getCurrentStreak(s) >= 1 },
+        { id: 'week_warrior', name: 'Week Warrior', desc: 'Reach 7 day streak', icon: 'fa-fire', condition: (s) => getCurrentStreak(s) >= 7 },
+        { id: 'month_master', name: 'Month Master', desc: 'Reach 30 day streak', icon: 'fa-crown', condition: (s) => getCurrentStreak(s) >= 30 },
+        { id: 'journal_5', name: 'Chronicler', desc: 'Write 5 journal entries', icon: 'fa-book', condition: (s) => s.journalEntries.length >= 5 },
+        { id: 'checkin_10', name: 'Committed', desc: 'Complete 10 check-ins', icon: 'fa-check-double', condition: (s) => s.totalCheckins >= 10 },
+        { id: 'no_panic', name: 'Iron Will', desc: 'Reach 7 days without panic button', icon: 'fa-shield', condition: (s) => getCurrentStreak(s) >= 7 && s.panicButtonUses === 0 },
+        { id: 'comeback', name: 'Phoenix', desc: 'Recover after a relapse', icon: 'fa-phoenix-squadron', condition: (s) => s.relapseHistory.length > 0 && getCurrentStreak(s) >= 3 },
+        { id: 'task_master', name: 'Task Master', desc: 'Complete all daily tasks 5 times', icon: 'fa-list-check', condition: (s) => {
+            let fullDays = 0;
+            Object.values(s.dailyChecklist).forEach(tasks => {
+                if (tasks.length === CONFIG.dailyTasks.length) fullDays++;
+            });
+            return fullDays >= 5;
+        }},
+        { id: 'century', name: 'Centurion', desc: 'Reach 100 day streak', icon: 'fa-trophy', condition: (s) => getCurrentStreak(s) >= 100 }
     ]
 };
+
+function getCurrentStreak(s) {
+    return Math.floor(moment.duration(moment().diff(moment(s.startDate))).asDays());
+}
 
 // --- State Management ---
 let state = {
@@ -27,7 +48,8 @@ let state = {
     activityLog: [], // { timestamp, type, description }
     panicButtonUses: 0,
     totalCheckins: 0,
-    streakHistory: {} // { 'YYYY-MM-DD': streakDays }
+    streakHistory: {}, // { 'YYYY-MM-DD': streakDays }
+    unlockedAchievements: [] // ['achievement_id', ...]
 };
 
 // --- DOM Elements ---
@@ -313,6 +335,10 @@ function setupNavigation() {
             // Update Breadcrumb
             els.currentViewLabel.innerText = targetView.toUpperCase();
             
+            // Render view-specific content
+            if (targetView === 'achievements') renderAchievements();
+            if (targetView === 'leaderboard') renderLeaderboard();
+            
             // Close sidebar on mobile
             if (window.innerWidth < 768) {
                 toggleSidebar(false);
@@ -347,6 +373,9 @@ function startTimer() {
         // Track daily streak for heatmap
         const today = moment().format('YYYY-MM-DD');
         state.streakHistory[today] = d;
+        
+        // Check achievements every minute
+        if (s === 0) checkAchievements();
     }, 1000);
 }
 
@@ -413,6 +442,7 @@ function dailyCheckin() {
         logActivity('checkin', 'Daily commitment completed');
         saveState();
         updateAnalytics();
+        checkAchievements();
         
         confetti({
             particleCount: 100,
@@ -477,6 +507,7 @@ function toggleTask(taskId, isChecked) {
     
     saveState();
     renderChecklist();
+    checkAchievements();
 }
 
 // --- Journal System ---
@@ -499,6 +530,7 @@ function saveJournalEntry(inputElement) {
     // Refresh Journal View
     renderJournalHistory();
     updateAnalytics();
+    checkAchievements();
     
     // Visual Feedback (Toast)
     const originalText = inputElement.nextElementSibling.innerText;
@@ -848,4 +880,106 @@ function importData(e) {
         }
     };
     reader.readAsText(file);
+}
+
+// --- Achievements System ---
+function checkAchievements() {
+    let newUnlocks = [];
+    CONFIG.achievements.forEach(ach => {
+        if (!state.unlockedAchievements.includes(ach.id) && ach.condition(state)) {
+            state.unlockedAchievements.push(ach.id);
+            newUnlocks.push(ach);
+        }
+    });
+    
+    if (newUnlocks.length > 0) {
+        saveState();
+        newUnlocks.forEach(ach => {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#fbbf24', '#f59e0b', '#ffffff']
+            });
+            logActivity('achievement', `Unlocked: ${ach.name}`);
+        });
+    }
+}
+
+function renderAchievements() {
+    const grid = document.getElementById('achievements-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = CONFIG.achievements.map(ach => {
+        const unlocked = state.unlockedAchievements.includes(ach.id);
+        return `
+            <div class="bg-surface border border-glassBorder rounded-2xl p-6 ${unlocked ? '' : 'opacity-50'} transition-all hover:scale-105">
+                <div class="flex items-start gap-4">
+                    <div class="w-16 h-16 rounded-full ${unlocked ? 'bg-gradient-to-br from-gold to-yellow-600' : 'bg-glassBorder'} flex items-center justify-center shrink-0">
+                        <i class="fa-solid ${ach.icon} text-2xl ${unlocked ? 'text-white' : 'text-gray-600'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-white font-bold mb-1">${ach.name}</h4>
+                        <p class="text-sm text-gray-400">${ach.desc}</p>
+                        ${unlocked ? '<span class="inline-block mt-2 px-2 py-1 bg-gold/20 text-gold text-xs rounded-full">UNLOCKED</span>' : '<span class="inline-block mt-2 px-2 py-1 bg-glassBorder text-gray-600 text-xs rounded-full">LOCKED</span>'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// --- Leaderboard System ---
+function renderLeaderboard() {
+    const currentStreak = getCurrentStreak(state);
+    const userBadges = state.unlockedAchievements.length;
+    
+    // Mock leaderboard data
+    const mockUsers = [
+        { name: 'ShadowWarrior', streak: 156, checkins: 142, badges: 8 },
+        { name: 'PhoenixRising', streak: 134, checkins: 128, badges: 7 },
+        { name: 'IronMind', streak: 98, checkins: 95, badges: 6 },
+        { name: 'ZenMaster', streak: 87, checkins: 84, badges: 6 },
+        { name: 'NightHawk', streak: 76, checkins: 71, badges: 5 },
+        { name: 'StormBreaker', streak: 65, checkins: 62, badges: 5 },
+        { name: 'SilentGuardian', streak: 54, checkins: 51, badges: 4 },
+        { name: 'VoidWalker', streak: 43, checkins: 40, badges: 4 },
+        { name: 'CyberMonk', streak: 32, checkins: 30, badges: 3 },
+        { name: 'QuantumLeap', streak: 21, checkins: 20, badges: 3 }
+    ];
+    
+    // Add user to list
+    const userEntry = { name: 'You', streak: currentStreak, checkins: state.totalCheckins, badges: userBadges };
+    const allUsers = [...mockUsers, userEntry].sort((a, b) => b.streak - a.streak);
+    const userRank = allUsers.findIndex(u => u.name === 'You') + 1;
+    
+    // Update user stats
+    document.getElementById('user-rank').innerText = `#${userRank}`;
+    document.getElementById('user-streak-display').innerText = currentStreak;
+    document.getElementById('user-checkins-display').innerText = state.totalCheckins;
+    document.getElementById('user-badges-display').innerText = userBadges;
+    
+    // Render list
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    
+    list.innerHTML = allUsers.slice(0, 10).map((user, idx) => {
+        const isUser = user.name === 'You';
+        const medals = ['🥇', '🥈', '🥉'];
+        return `
+            <div class="flex items-center justify-between p-3 rounded-lg ${isUser ? 'bg-accent/10 border border-accent/30' : 'bg-glass'} transition-colors">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl w-8 text-center">${medals[idx] || `#${idx + 1}`}</span>
+                    <div>
+                        <p class="text-white font-medium ${isUser ? 'text-accent' : ''}">${user.name}</p>
+                        <p class="text-xs text-gray-500">${user.checkins} check-ins • ${user.badges} badges</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xl font-bold text-white">${user.streak}</p>
+                    <p class="text-xs text-gray-500">days</p>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
