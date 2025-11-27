@@ -144,18 +144,19 @@
 
         <!-- User Profile Snippet -->
         <div class="p-6 border-b border-glassBorder bg-white/2">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 mb-3">
                 <div class="w-12 h-12 rounded-full bg-glassBorder border border-accent/30 flex items-center justify-center shrink-0">
                     <i class="fa-solid text-xl text-gray-300" id="sidebar-avatar"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                        <p class="text-white font-bold tracking-wide" id="sidebar-username">Warrior</p>
-                        <div class="flex flex-wrap gap-1" id="sidebar-addictions">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
+                    <p class="text-white font-bold tracking-wide truncate" id="sidebar-username">Warrior</p>
                     <p class="text-xs text-gray-500 font-mono uppercase" id="sidebar-rank">INITIATE</p>
+                </div>
+            </div>
+            <div class="pt-3 border-t border-glassBorder">
+                <p class="text-[10px] text-gray-600 font-mono uppercase mb-2 tracking-wider">Fighting Against</p>
+                <div class="flex flex-wrap gap-1" id="sidebar-addictions">
+                    <!-- Populated by JS -->
                 </div>
             </div>
         </div>
