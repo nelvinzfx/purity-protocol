@@ -467,6 +467,7 @@ function initUI() {
     const today = moment().format('YYYY-MM-DD');
     if (state.lastCheckin === today) {
         els.checkinBtn.innerHTML = `<i class="fa-solid fa-check"></i> COMPLETE`;
+        els.checkinBtn.classList.remove('bg-white', 'text-black');
         els.checkinBtn.classList.add('bg-green-500', 'text-white');
     }
 
@@ -654,10 +655,12 @@ function dailyCheckin() {
         });
 
         els.checkinBtn.innerHTML = `<i class="fa-solid fa-check"></i> COMPLETE`;
+        els.checkinBtn.classList.remove('bg-white', 'text-black');
         els.checkinBtn.classList.add('bg-green-500', 'text-white');
         setTimeout(() => {
             els.checkinBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> COMMIT`;
             els.checkinBtn.classList.remove('bg-green-500', 'text-white');
+            els.checkinBtn.classList.add('bg-white', 'text-black');
         }, 3000);
     } else {
         Modal.info('Already Committed', "You've already completed your daily check-in. Stay strong!");
