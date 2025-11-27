@@ -5,6 +5,7 @@
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
     background: #030304;
@@ -15,6 +16,18 @@
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #374151;
+}
+
+/* Thin scrollbar for terminal */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 /* Preloader: Charging Bolt */
