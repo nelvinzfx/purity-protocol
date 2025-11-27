@@ -159,12 +159,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- CLI / Terminal Logic ---
-const consoleHistory = document.getElementById('console-history');
-const cmdInput = document.getElementById('cmd-input');
 let commandHistory = [];
 let historyIndex = -1;
 
 function initCLI() {
+    const consoleHistory = document.getElementById('console-history');
+    const cmdInput = document.getElementById('cmd-input');
+    
+    if (!consoleHistory || !cmdInput) {
+        console.error('Terminal elements not found');
+        return;
+    }
+
     printToConsole('PURITY PROTOCOL v2.3 // NEXUS TERMINAL', 'system');
     printToConsole('Type "help" for available commands', 'info');
     printToConsole('─'.repeat(50), 'divider');
@@ -214,6 +220,9 @@ function initCLI() {
 }
 
 function printToConsole(text, type = 'system') {
+    const consoleHistory = document.getElementById('console-history');
+    if (!consoleHistory) return;
+    
     const div = document.createElement('div');
     div.className = 'mb-1 leading-relaxed';
     
@@ -233,7 +242,9 @@ function printToConsole(text, type = 'system') {
 
 function scrollToBottom() {
     const output = document.getElementById('console-output');
-    output.scrollTop = output.scrollHeight;
+    if (output) {
+        output.scrollTop = output.scrollHeight;
+    }
 }
 
 function handleCommand(rawCmd) {
@@ -353,8 +364,11 @@ function handleCommand(rawCmd) {
 }
 
 window.clearTerminal = function() {
-    consoleHistory.innerHTML = '';
-    printToConsole('Terminal cleared', 'info');
+    const consoleHistory = document.getElementById('console-history');
+    if (consoleHistory) {
+        consoleHistory.innerHTML = '';
+        printToConsole('Terminal cleared', 'info');
+    }
 };
 
 // --- Preloader Logic ---
