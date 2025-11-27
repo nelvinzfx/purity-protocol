@@ -1202,9 +1202,13 @@ function updateProfileUI() {
         sidebarAddictions.innerHTML = state.profile.addictionTypes.map(type => {
             const addiction = CONFIG.addictionTypes.find(a => a.id === type);
             if (addiction) {
-                return `<span class="px-2 py-0.5 rounded text-[9px] font-mono bg-glassBorder text-gray-400 border border-white/5 uppercase">${addiction.name.split(' ')[0]}</span>`;
+                return `<span class="addiction-badge badge-${type} px-2 py-1 rounded text-[9px] font-bold text-white border border-white/20 uppercase tracking-wide shadow-lg">
+                    <i class="fa-solid ${addiction.icon} mr-1"></i>${addiction.name.split(' ')[0]}
+                </span>`;
             }
-            return `<span class="px-2 py-0.5 rounded text-[9px] font-mono bg-glassBorder text-gray-400 border border-white/5 uppercase">${type}</span>`;
+            return `<span class="addiction-badge badge-custom px-2 py-1 rounded text-[9px] font-bold text-white border border-white/20 uppercase tracking-wide shadow-lg">
+                <i class="fa-solid fa-circle mr-1"></i>${type}
+            </span>`;
         }).join('');
     }
 }
