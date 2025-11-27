@@ -214,6 +214,63 @@ body {
     font-family: 'JetBrains Mono', monospace;
 }
 
+/* Badge Animations */
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Mini Glitch for Badges */
+.glitch-text-mini {
+    position: relative;
+}
+.glitch-text-mini::before,
+.glitch-text-mini::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    opacity: 0.8;
+}
+.glitch-text-mini::before {
+    left: 1px;
+    text-shadow: -1px 0 #00fff9;
+    animation: glitch-anim-mini 2s infinite linear alternate-reverse;
+}
+.glitch-text-mini::after {
+    left: -1px;
+    text-shadow: 1px 0 #ff00c1;
+    animation: glitch-anim-mini2 3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim-mini {
+    0% { clip-path: inset(10% 0 80% 0); }
+    20% { clip-path: inset(80% 0 10% 0); }
+    40% { clip-path: inset(40% 0 40% 0); }
+    60% { clip-path: inset(10% 0 80% 0); }
+    80% { clip-path: inset(80% 0 10% 0); }
+    100% { clip-path: inset(40% 0 40% 0); }
+}
+@keyframes glitch-anim-mini2 {
+    0% { clip-path: inset(80% 0 10% 0); }
+    20% { clip-path: inset(10% 0 80% 0); }
+    40% { clip-path: inset(40% 0 40% 0); }
+    60% { clip-path: inset(80% 0 10% 0); }
+    80% { clip-path: inset(10% 0 80% 0); }
+    100% { clip-path: inset(40% 0 40% 0); }
+}
+
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 /* Addiction Badge Styles - Outline Version */
 .addiction-badge {
     position: relative;

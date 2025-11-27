@@ -62,11 +62,18 @@ Interact with the system using power-user commands. Located in the bottom-right 
 | `panic` | Trigger Emergency Mode immediately. |
 | `status` | Print current streak and rank statistics. |
 
-### 4. Chronicles (Journaling System)
+### 3. Chronicles (Journaling System)
 A persistent log to record your thoughts, triggers, and victories.
 *   **Local Storage:** Data lives on your device. No cloud leaks.
 *   **Quick Log:** Add entries via the dashboard or CLI.
 *   **History:** Review past entries to identify patterns.
+
+### 4. Badge Mastery System
+A visual representation of your multi-faceted recovery.
+*   **PMO Shield (Void/Purple):** The core defense protocol. Pulsing neon aesthetic.
+*   **Social Grid (Cyber/Blue):** Disconnecting from the noise. Features glitch artifacts.
+*   **Toxin Purge (Toxic/Green):** Lung recovery tracker. Includes particle/smoke effects.
+*   **Dopamine Reg (Overclock/Orange):** Normalizing brain chemistry. High-energy electric visuals.
 
 ### 5. Emergency Protocol (Panic Button)
 A "Break Glass" feature for high-urge moments.
