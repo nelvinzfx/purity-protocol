@@ -14,6 +14,21 @@ const CONFIG = {
         { id: 'journal', text: 'Journal Entry', icon: 'fa-pen' },
         { id: 'exercise', text: 'Physical Training', icon: 'fa-dumbbell' }
     ],
+    addictionTypes: [
+        { id: 'pmo', name: 'PMO (Porn/Masturbation)', icon: 'fa-ban', color: '#ef4444' },
+        { id: 'social_media', name: 'Social Media', icon: 'fa-mobile-screen', color: '#3b82f6' },
+        { id: 'reels', name: 'Reels/Short Videos', icon: 'fa-video', color: '#8b5cf6' },
+        { id: 'gaming', name: 'Gaming', icon: 'fa-gamepad', color: '#10b981' },
+        { id: 'smoking', name: 'Smoking', icon: 'fa-smoking', color: '#6b7280' },
+        { id: 'alcohol', name: 'Alcohol', icon: 'fa-wine-bottle', color: '#f59e0b' },
+        { id: 'junk_food', name: 'Junk Food', icon: 'fa-burger', color: '#f97316' },
+        { id: 'shopping', name: 'Shopping', icon: 'fa-cart-shopping', color: '#ec4899' }
+    ],
+    avatars: [
+        'fa-user-astronaut', 'fa-user-ninja', 'fa-user-secret', 'fa-dragon',
+        'fa-robot', 'fa-skull', 'fa-ghost', 'fa-cat', 'fa-dog', 'fa-crow',
+        'fa-fire', 'fa-bolt', 'fa-shield', 'fa-crown', 'fa-star'
+    ],
     achievements: [
         { id: 'first_day', name: 'First Step', desc: 'Complete your first day', icon: 'fa-seedling', condition: (s) => getCurrentStreak(s) >= 1 },
         { id: 'week_warrior', name: 'Week Warrior', desc: 'Reach 7 day streak', icon: 'fa-fire', condition: (s) => getCurrentStreak(s) >= 7 },
@@ -49,7 +64,12 @@ let state = {
     panicButtonUses: 0,
     totalCheckins: 0,
     streakHistory: {}, // { 'YYYY-MM-DD': streakDays }
-    unlockedAchievements: [] // ['achievement_id', ...]
+    unlockedAchievements: [], // ['achievement_id', ...]
+    profile: {
+        username: 'Warrior',
+        avatar: 'fa-user-astronaut',
+        addictionTypes: ['pmo'] // pmo, social_media, reels, gaming, smoking, alcohol, custom
+    }
 };
 
 // --- DOM Elements ---
@@ -275,6 +295,7 @@ function initUI() {
     els.dateDisplay.innerText = moment().format('MMM D').toUpperCase();
     updateBestStreakUI();
     renderChecklist();
+    updateProfileUI();
     
     // Event Listeners
     setupNavigation();
@@ -291,6 +312,12 @@ function initUI() {
 
     els.exportBtn.addEventListener('click', exportData);
     els.importFile.addEventListener('change', importData);
+
+    // Profile handlers
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    const addCustomBtn = document.getElementById('add-custom-addiction');
+    if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
+    if (addCustomBtn) addCustomBtn.addEventListener('click', addCustomAddiction);
 }
 
 // --- Navigation Logic ---
@@ -338,6 +365,7 @@ function setupNavigation() {
             // Render view-specific content
             if (targetView === 'achievements') renderAchievements();
             if (targetView === 'leaderboard') renderLeaderboard();
+            if (targetView === 'settings') renderProfileSettings();
             
             // Close sidebar on mobile
             if (window.innerWidth < 768) {
@@ -949,9 +977,9 @@ function renderLeaderboard() {
     ];
     
     // Add user to list
-    const userEntry = { name: 'You', streak: currentStreak, checkins: state.totalCheckins, badges: userBadges };
+    const userEntry = { name: state.profile.username, streak: currentStreak, checkins: state.totalCheckins, badges: userBadges };
     const allUsers = [...mockUsers, userEntry].sort((a, b) => b.streak - a.streak);
-    const userRank = allUsers.findIndex(u => u.name === 'You') + 1;
+    const userRank = allUsers.findIndex(u => u.name === state.profile.username) + 1;
     
     // Update user stats
     document.getElementById('user-rank').innerText = `#${userRank}`;
@@ -964,7 +992,7 @@ function renderLeaderboard() {
     if (!list) return;
     
     list.innerHTML = allUsers.slice(0, 10).map((user, idx) => {
-        const isUser = user.name === 'You';
+        const isUser = user.name === state.profile.username;
         const medals = ['🥇', '🥈', '🥉'];
         return `
             <div class="flex items-center justify-between p-3 rounded-lg ${isUser ? 'bg-accent/10 border border-accent/30' : 'bg-glass'} transition-colors">
@@ -983,3 +1011,119 @@ function renderLeaderboard() {
         `;
     }).join('');
 }
+
+// --- Profile System ---
+function updateProfileUI() {
+    // Sidebar
+    document.getElementById('sidebar-username').innerText = state.profile.username;
+    document.getElementById('sidebar-avatar').className = `fa-solid ${state.profile.avatar} text-xl text-gray-300`;
+    
+    // Addiction badges in sidebar
+    const sidebarAddictions = document.getElementById('sidebar-addictions');
+    if (sidebarAddictions) {
+        sidebarAddictions.innerHTML = state.profile.addictionTypes.map(type => {
+            const addiction = CONFIG.addictionTypes.find(a => a.id === type);
+            if (addiction) {
+                return `<span class="px-2 py-0.5 rounded text-[9px] font-mono bg-glassBorder text-gray-400 border border-white/5 uppercase">${addiction.name.split(' ')[0]}</span>`;
+            }
+            return `<span class="px-2 py-0.5 rounded text-[9px] font-mono bg-glassBorder text-gray-400 border border-white/5 uppercase">${type}</span>`;
+        }).join('');
+    }
+}
+
+function renderProfileSettings() {
+    // Username input
+    document.getElementById('username-input').value = state.profile.username;
+    
+    // Avatar grid
+    const avatarGrid = document.getElementById('avatar-grid');
+    if (avatarGrid) {
+        avatarGrid.innerHTML = CONFIG.avatars.map(icon => {
+            const selected = state.profile.avatar === icon;
+            return `
+                <button class="avatar-option w-12 h-12 rounded-lg ${selected ? 'bg-accent text-void' : 'bg-glassBorder text-gray-400 hover:bg-white/10'} flex items-center justify-center transition-colors" data-avatar="${icon}">
+                    <i class="fa-solid ${icon} text-xl"></i>
+                </button>
+            `;
+        }).join('');
+        
+        // Add click handlers
+        document.querySelectorAll('.avatar-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.avatar-option').forEach(b => {
+                    b.classList.remove('bg-accent', 'text-void');
+                    b.classList.add('bg-glassBorder', 'text-gray-400');
+                });
+                btn.classList.remove('bg-glassBorder', 'text-gray-400');
+                btn.classList.add('bg-accent', 'text-void');
+            });
+        });
+    }
+    
+    // Addiction checkboxes
+    const checkboxContainer = document.getElementById('addiction-checkboxes');
+    if (checkboxContainer) {
+        checkboxContainer.innerHTML = CONFIG.addictionTypes.map(addiction => {
+            const checked = state.profile.addictionTypes.includes(addiction.id);
+            return `
+                <label class="flex items-center gap-3 p-3 rounded-lg bg-glass hover:bg-glassHigh border border-glassBorder cursor-pointer transition-colors">
+                    <input type="checkbox" class="addiction-checkbox custom-checkbox" data-addiction="${addiction.id}" ${checked ? 'checked' : ''}>
+                    <i class="fa-solid ${addiction.icon}" style="color: ${addiction.color}"></i>
+                    <span class="text-sm text-gray-300">${addiction.name}</span>
+                </label>
+            `;
+        }).join('');
+        
+        // Add custom addictions
+        state.profile.addictionTypes.forEach(type => {
+            if (!CONFIG.addictionTypes.find(a => a.id === type)) {
+                checkboxContainer.innerHTML += `
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-glass hover:bg-glassHigh border border-glassBorder cursor-pointer transition-colors">
+                        <input type="checkbox" class="addiction-checkbox custom-checkbox" data-addiction="${type}" checked>
+                        <i class="fa-solid fa-circle" style="color: #6b7280"></i>
+                        <span class="text-sm text-gray-300">${type}</span>
+                        <button class="ml-auto text-red-500 hover:text-red-400" onclick="removeCustomAddiction('${type}')">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </label>
+                `;
+            }
+        });
+    }
+}
+
+function saveProfile() {
+    // Get username
+    state.profile.username = document.getElementById('username-input').value.trim() || 'Warrior';
+    
+    // Get selected avatar
+    const selectedAvatar = document.querySelector('.avatar-option.bg-accent');
+    if (selectedAvatar) {
+        state.profile.avatar = selectedAvatar.dataset.avatar;
+    }
+    
+    // Get selected addictions
+    const checkedBoxes = document.querySelectorAll('.addiction-checkbox:checked');
+    state.profile.addictionTypes = Array.from(checkedBoxes).map(cb => cb.dataset.addiction);
+    
+    saveState();
+    updateProfileUI();
+    logActivity('profile', 'Profile updated');
+    
+    alert('Profile saved!');
+}
+
+function addCustomAddiction() {
+    const input = document.getElementById('custom-addiction');
+    const value = input.value.trim();
+    if (value && !state.profile.addictionTypes.includes(value)) {
+        state.profile.addictionTypes.push(value);
+        input.value = '';
+        renderProfileSettings();
+    }
+}
+
+window.removeCustomAddiction = function(type) {
+    state.profile.addictionTypes = state.profile.addictionTypes.filter(t => t !== type);
+    renderProfileSettings();
+};
