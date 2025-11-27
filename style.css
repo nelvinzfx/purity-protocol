@@ -412,3 +412,115 @@ body {
         transform: translateY(0) scale(1);
     }
 }
+
+/* Modal Button Styles */
+.modal-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(90deg, transparent, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-btn:hover::before {
+    opacity: 1;
+    animation: neon-snake 2s linear infinite;
+}
+
+@keyframes neon-snake {
+    0% {
+        background: linear-gradient(90deg, transparent 0%, var(--neon-color) 50%, transparent 100%);
+        background-position: -100% 0;
+        background-size: 200% 100%;
+    }
+    100% {
+        background: linear-gradient(90deg, transparent 0%, var(--neon-color) 50%, transparent 100%);
+        background-position: 200% 0;
+        background-size: 200% 100%;
+    }
+}
+
+/* Button Color Variants */
+.modal-btn-success {
+    --neon-color: #10b981;
+    border: 2px solid #10b981;
+    color: #10b981;
+    background: transparent;
+}
+
+.modal-btn-success:hover {
+    background: rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.modal-btn-danger {
+    --neon-color: #ef4444;
+    border: 2px solid #ef4444;
+    color: #ef4444;
+    background: transparent;
+}
+
+.modal-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.modal-btn-accent {
+    --neon-color: #06b6d4;
+    border: 2px solid #06b6d4;
+    color: #06b6d4;
+    background: transparent;
+}
+
+.modal-btn-accent:hover {
+    background: rgba(6, 182, 212, 0.1);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.modal-btn-secondary {
+    --neon-color: #8b5cf6;
+    border: 2px solid #8b5cf6;
+    color: #8b5cf6;
+    background: transparent;
+}
+
+.modal-btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.modal-btn-warning {
+    --neon-color: #f59e0b;
+    border: 2px solid #f59e0b;
+    color: #f59e0b;
+    background: transparent;
+}
+
+.modal-btn-warning:hover {
+    background: rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.modal-btn-neutral {
+    --neon-color: #6b7280;
+    border: 2px solid #6b7280;
+    color: #6b7280;
+    background: transparent;
+}
+
+.modal-btn-neutral:hover {
+    background: rgba(107, 114, 128, 0.1);
+    box-shadow: 0 0 20px rgba(107, 114, 128, 0.3);
+}

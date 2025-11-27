@@ -1521,7 +1521,7 @@ const Modal = {
             title,
             message,
             type: 'success',
-            buttons: [{ text: 'OK', className: 'bg-success hover:bg-green-600 text-white' }]
+            buttons: [{ text: 'OK', className: 'modal-btn modal-btn-success px-6 py-2.5 rounded-lg font-bold uppercase tracking-wide' }]
         });
     },
     
@@ -1530,7 +1530,7 @@ const Modal = {
             title,
             message,
             type: 'error',
-            buttons: [{ text: 'OK', className: 'bg-danger hover:bg-red-600 text-white' }]
+            buttons: [{ text: 'OK', className: 'modal-btn modal-btn-danger px-6 py-2.5 rounded-lg font-bold uppercase tracking-wide' }]
         });
     },
     
@@ -1540,8 +1540,8 @@ const Modal = {
             message,
             type: 'confirm',
             buttons: [
-                { text: 'Cancel', className: 'bg-glass hover:bg-glassHigh text-gray-300 border border-glassBorder' },
-                { text: 'Confirm', className: 'bg-accent hover:bg-cyan-400 text-void font-bold', onClick: onConfirm }
+                { text: 'Cancel', className: 'modal-btn modal-btn-neutral px-6 py-2.5 rounded-lg font-medium uppercase tracking-wide' },
+                { text: 'Confirm', className: 'modal-btn modal-btn-accent px-6 py-2.5 rounded-lg font-bold uppercase tracking-wide', onClick: onConfirm }
             ]
         });
     },
@@ -1551,7 +1551,7 @@ const Modal = {
             title,
             message,
             type: 'info',
-            buttons: [{ text: 'Got it', className: 'bg-accent hover:bg-cyan-400 text-void font-bold' }]
+            buttons: [{ text: 'Got it', className: 'modal-btn modal-btn-accent px-6 py-2.5 rounded-lg font-bold uppercase tracking-wide' }]
         });
     }
 };
