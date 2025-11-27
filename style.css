@@ -72,6 +72,11 @@
     animation: float-particle 2s infinite ease-out;
 }
 
+/* Breathing Animation - Overridden by JS for precise control but base styles needed */
+.breathing-active {
+    transition: transform 4s ease-in-out;
+}
+
 /* General Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
