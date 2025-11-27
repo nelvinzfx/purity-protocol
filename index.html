@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purity Protocol v2.1 // Nexus</title>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        void: '#030304',
+                        surface: '#0a0a0c',
+                        glass: 'rgba(255, 255, 255, 0.02)',
+                        glassHigh: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.06)',
+                        primary: '#3b82f6', 
+                        secondary: '#8b5cf6',
+                        accent: '#06b6d4',
+                        danger: '#f43f5e',
+                        success: '#10b981',
+                        gold: '#fbbf24',
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(6, 182, 212, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-void text-slate-300 font-sans overflow-x-hidden antialiased selection:bg-accent selection:text-void">
+
+    <!-- PRELOADER -->
+    <div id="preloader" class="fixed inset-0 z-[999] bg-void flex flex-col items-center justify-center transition-opacity duration-700 select-none">
+        
+        <!-- Main Icon Container -->
+        <div class="relative w-40 h-48 flex items-center justify-center mb-8">
+            
+            <!-- 1. Base Layer (Dark Bolt) -->
+            <i class="fa-solid fa-bolt text-gray-900 text-9xl absolute"></i>
+            
+            <!-- 2. Charging Layer (The Fill - NO SHADOW to avoid box clip) -->
+            <div class="bolt-mask">
+                <div class="h-48 w-40 flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-9xl text-transparent bg-clip-text bg-gradient-to-t from-cyan-400 via-blue-500 to-violet-600"></i>
+                </div>
+            </div>
+
+            <!-- 3. Glow Layer (Fades in to prevent boxy clip) -->
+            <div id="bolt-glow" class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 ease-linear">
+                <i class="fa-solid fa-bolt text-9xl text-transparent bg-clip-text bg-gradient-to-t from-cyan-400 via-blue-500 to-violet-600 drop-shadow-[0_0_30px_rgba(6,182,212,0.6)]"></i>
+            </div>
+
+            <!-- 4. Glitch Layer (Violent Overlay) -->
+            <div class="absolute inset-0 flex items-center justify-center animate-glitch-violent opacity-0">
+                <i class="fa-solid fa-bolt text-9xl text-white mix-blend-overlay blur-sm"></i>
+            </div>
+
+            <!-- 5. Particles -->
+            <div class="absolute -bottom-8 w-full flex justify-center gap-4">
+                <div class="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-float-particle shadow-[0_0_10px_cyan]" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 bg-violet-400 rounded-full animate-float-particle shadow-[0_0_10px_violet]" style="animation-delay: 0.2s"></div>
+                <div class="w-1 h-1 bg-white rounded-full animate-float-particle shadow-[0_0_10px_white]" style="animation-delay: 0.4s"></div>
+            </div>
+        </div>
+        
+        <!-- Text & Bar -->
+        <div class="w-64 space-y-3 relative z-10">
+            <div class="flex justify-between text-xs font-mono font-bold tracking-widest text-accent">
+                <span class="glitch-text" data-text="SYSTEM_CHARGE">SYSTEM_CHARGE</span>
+                <span id="loader-percent">0%</span>
+            </div>
+            <div class="h-1.5 w-full bg-gray-900 rounded-full overflow-hidden border border-white/5">
+                <div id="loader-bar" class="h-full bg-gradient-to-r from-cyan-500 to-violet-500 w-0 shadow-[0_0_15px_rgba(6,182,212,0.8)] transition-all duration-100 ease-out"></div>
+            </div>
+            <p class="text-[10px] text-gray-600 font-mono text-center uppercase tracking-[0.2em] animate-pulse">Establishing Neural Uplink...</p>
+        </div>
+    </div>
+
+    <!-- Complex SVG Background Mesh -->
+    <div class="fixed inset-0 z-[-1] opacity-30 pointer-events-none">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                </pattern>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.1" />
+                    <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.1" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <circle cx="10%" cy="20%" r="300" fill="url(#grad1)" filter="url(#blurMe)"/>
+            <circle cx="90%" cy="80%" r="400" fill="rgba(6, 182, 212, 0.05)" filter="url(#blurMe)"/>
+            <filter id="blurMe">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="80" />
+            </filter>
+        </svg>
+    </div>
+
+    <!-- SIDEBAR OVERLAY -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-surface border-r border-glassBorder z-[60] transform -translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        
+        <!-- Sidebar Header -->
+        <div class="p-6 border-b border-glassBorder flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-glow">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span class="font-bold text-lg text-white">PURITY<span class="text-accent">.IO</span></span>
+            </div>
+            <button id="close-sidebar" class="text-gray-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- User Profile Snippet -->
+        <div class="p-6 border-b border-glassBorder bg-white/2">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-glassBorder border border-accent/30 flex items-center justify-center">
+                    <i class="fa-solid fa-user-astronaut text-xl text-gray-300"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-mono uppercase">Current Rank</p>
+                    <h4 class="text-white font-bold tracking-wide" id="sidebar-rank">INITIATE</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group active" data-view="dashboard">
+                <i class="fa-solid fa-chart-pie w-6 text-center group-hover:text-accent transition-colors"></i>
+                <span class="font-medium">Command Center</span>
+            </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="analytics">
+                <i class="fa-solid fa-chart-line w-6 text-center group-hover:text-accent transition-colors"></i>
+                <span class="font-medium">Analytics</span>
+            </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="journal">
+                <i class="fa-solid fa-book w-6 text-center group-hover:text-secondary transition-colors"></i>
+                <span class="font-medium">Chronicles</span>
+            </button>
+            <button class="nav-link w-full p-3 rounded-lg flex items-center gap-4 text-gray-400 hover:text-white hover:bg-white/5 transition-all group" data-view="settings">
+                <i class="fa-solid fa-sliders w-6 text-center group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">Protocol Config</span>
+            </button>
+        </nav>
+
+        <!-- Bottom Actions -->
+        <div class="p-4 border-t border-glassBorder">
+            <button onclick="window.open('https://github.com/topics/porn-addiction', '_blank')" class="w-full p-3 rounded-lg flex items-center gap-4 text-gray-500 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fa-brands fa-github w-6 text-center"></i>
+                <span class="font-medium text-sm">Resources</span>
+            </button>
+            <p class="mt-4 text-center text-[10px] text-gray-700 font-mono">v2.1.0 // SYSTEM SECURE</p>
+        </div>
+    </aside>
+
+
+    <!-- TOP NAVBAR -->
+    <nav class="w-full border-b border-glassBorder bg-void/80 backdrop-blur-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="open-sidebar" class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
+                    <i class="fa-solid fa-bars-staggered text-lg"></i>
+                </button>
+                <span class="font-bold text-xl tracking-tight text-white truncate md:hidden">PURITY<span class="text-accent">.IO</span></span>
+                <!-- Breadcrumbs Desktop -->
+                <div class="hidden md:flex items-center gap-2 text-sm text-gray-500 font-mono">
+                    <span>SYS</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <span id="current-view-label" class="text-accent">DASHBOARD</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-xs font-mono text-gray-500 border border-glassBorder px-3 py-1 rounded-full whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    SYSTEM ACTIVE
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 relative z-0 min-h-[calc(100vh-4rem)]">
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view-section animate-fade-in flex flex-col gap-6">
+            
+            <!-- 1. Neural Data Ticker (Running Text) -->
+            <div class="w-full bg-surface border border-glassBorder rounded-lg overflow-hidden py-2 flex items-center relative">
+                <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-surface to-transparent z-10"></div>
+                <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-surface to-transparent z-10"></div>
+                <div class="whitespace-nowrap flex gap-8 animate-marquee text-xs font-mono text-accent/80 items-center">
+                    <span>:: SYSTEM OPTIMAL ::</span>
+                    <span><i class="fa-solid fa-satellite-dish"></i> UPLINK SECURE</span>
+                    <span>:: DETOX PROTOCOL: ACTIVE ::</span>
+                    <span><i class="fa-solid fa-microchip"></i> WILLPOWER EFFICIENCY: 98.4%</span>
+                    <span>:: NO THREATS DETECTED ::</span>
+                    <span><i class="fa-solid fa-brain"></i> REWIRING NEURAL PATHWAYS...</span>
+                    <span>:: STAY HARD ::</span>
+                    <span><i class="fa-solid fa-shield-virus"></i> FIREWALL ENGAGED</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- LEFT COLUMN (Stats & Timer) -->
+                <div class="lg:col-span-8 space-y-6 min-w-0">
+                    
+                    <!-- Hero Timer Card -->
+                    <div class="relative group w-full">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                        <div class="relative w-full bg-surface border border-glassBorder rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between overflow-hidden">
+                            
+                            <div class="z-10 text-center md:text-left w-full md:w-auto">
+                                <div class="flex items-center gap-2 justify-center md:justify-start mb-2 flex-wrap">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-glassBorder text-gray-400 border border-white/5 uppercase tracking-wider">Current Streak</span>
+                                    <span class="text-yellow-500 text-xs whitespace-nowrap"><i class="fa-solid fa-fire"></i> <span id="best-streak">Best: 0d</span></span>
+                                </div>
+                                <h1 id="main-timer" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-white tracking-tighter mb-2 tabular-nums leading-none break-all sm:break-normal">00:00:00</h1>
+                                <p class="text-gray-500 text-sm">Time since last reset</p>
+                            </div>
+
+                            <div class="mt-8 md:mt-0 flex flex-col sm:flex-row md:flex-col gap-3 z-10 w-full md:w-auto shrink-0">
+                                <button id="checkin-btn" class="flex-1 md:flex-none px-6 py-3 rounded-lg bg-white text-black font-bold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 whitespace-nowrap">
+                                    <i class="fa-solid fa-check-double"></i> COMMIT
+                                </button>
+                                <button id="relapse-btn" class="flex-1 md:flex-none px-6 py-3 rounded-lg bg-glass border border-red-900/30 text-red-500 hover:bg-red-950/30 transition-colors text-sm font-medium flex items-center justify-center gap-2 whitespace-nowrap">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i> RESET
+                                </button>
+                            </div>
+                            <i class="fa-regular fa-hourglass-half absolute -right-6 -bottom-6 text-8xl sm:text-9xl text-white/5 rotate-12 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- 2. Telemetry Grid (New Feature) -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Widget 1 -->
+                        <div class="bg-surface border border-glassBorder rounded-xl p-3 relative overflow-hidden">
+                            <p class="text-[10px] text-gray-500 font-mono mb-1">WILLPOWER</p>
+                            <div class="flex items-end justify-between">
+                                <span class="text-xl font-bold text-white telemetry-value">98%</span>
+                                <i class="fa-solid fa-bolt text-accent/50"></i>
+                            </div>
+                            <div class="w-full bg-glassBorder h-1 mt-2 rounded-full"><div class="bg-accent h-full w-[98%]"></div></div>
+                        </div>
+                        <!-- Widget 2 -->
+                        <div class="bg-surface border border-glassBorder rounded-xl p-3 relative overflow-hidden">
+                            <p class="text-[10px] text-gray-500 font-mono mb-1">FOCUS</p>
+                            <div class="flex items-end justify-between">
+                                <span class="text-xl font-bold text-white telemetry-value">OPTIMAL</span>
+                                <i class="fa-solid fa-crosshairs text-success/50"></i>
+                            </div>
+                            <div class="w-full bg-glassBorder h-1 mt-2 rounded-full"><div class="bg-success h-full w-full"></div></div>
+                        </div>
+                        <!-- Widget 3 -->
+                        <div class="bg-surface border border-glassBorder rounded-xl p-3 relative overflow-hidden">
+                            <p class="text-[10px] text-gray-500 font-mono mb-1">SYNC</p>
+                            <div class="flex items-end justify-between">
+                                <span class="text-xl font-bold text-white telemetry-value animate-pulse">STABLE</span>
+                                <i class="fa-solid fa-link text-primary/50"></i>
+                            </div>
+                            <div class="w-full bg-glassBorder h-1 mt-2 rounded-full"><div class="bg-primary h-full w-full"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-surface border border-glassBorder rounded-2xl p-6 shadow-lg min-w-0">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-semibold text-white flex items-center gap-2 text-sm sm:text-base"><i class="fa-solid fa-brain text-secondary"></i> Neural Baseline</h3>
+                                <span class="text-xs text-green-400 font-mono">+2.4% / day</span>
+                            </div>
+                            <div class="h-48 w-full relative">
+                                <canvas id="recoveryChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-surface border border-glassBorder rounded-2xl p-6 relative overflow-hidden flex flex-col justify-center items-center text-center shadow-lg min-w-0">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-50"></div>
+                            <div class="w-20 h-20 rounded-full border-2 border-accent/30 flex items-center justify-center mb-4 relative shrink-0">
+                                <div class="absolute inset-0 rounded-full border-2 border-accent border-t-transparent animate-spin"></div>
+                                <i class="fa-solid fa-medal text-3xl text-accent drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-1 truncate max-w-full px-2" id="rank-title">INITIATE</h3>
+                            <p class="text-xs text-gray-500 font-mono mb-4">NEXT RANK IN: <span id="next-rank-days" class="text-white">3 DAYS</span></p>
+                            <div class="w-full bg-glassBorder h-2 rounded-full overflow-hidden">
+                                <div id="rank-progress" class="h-full bg-gradient-to-r from-primary to-accent w-[10%] transition-all duration-1000"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Protocol Checklist -->
+                    <div class="bg-surface border border-glassBorder rounded-2xl p-6 min-w-0">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-green-500"></i> Daily Protocol
+                            </h3>
+                            <span class="text-xs text-gray-500 font-mono" id="date-display">NOV 27</span>
+                        </div>
+                        <div class="space-y-3" id="checklist-container"></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN (Tools & Motivation) -->
+                <div class="lg:col-span-4 space-y-6 min-w-0">
+                    <button id="panic-btn" class="w-full group relative overflow-hidden rounded-2xl p-1 transition-all hover:scale-[1.02]">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-600 to-red-900 animate-pulse group-hover:animate-none transition-all"></div>
+                        <div class="relative bg-black/40 backdrop-blur-sm rounded-xl p-6 h-full border border-red-500/30 flex flex-col items-center justify-center text-center gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)] mb-1"></i>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">EMERGENCY MODE</h3>
+                                <p class="text-xs text-red-200">Urge Detected? Click Immediately.</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- 3. System Console (Interactive) -->
+                    <div class="bg-black border border-glassBorder rounded-2xl p-4 font-mono text-xs relative overflow-hidden shadow-lg h-48 flex flex-col" onclick="document.getElementById('cmd-input').focus()">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
+                            <span class="text-gray-500">TERMINAL_ROOT_ACCESS</span>
+                            <div class="flex gap-1">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto relative text-gray-300 leading-relaxed scrollbar-hide" id="console-output">
+                            <div id="console-history"></div>
+                            <div id="typewriter-text" class="text-accent mb-2"></div>
+                            
+                            <!-- Input Line -->
+                            <div class="flex items-center gap-2 mt-1 text-success">
+                                <span class="font-bold">usr@nexus:~$</span>
+                                <input type="text" id="cmd-input" class="bg-transparent border-none outline-none flex-1 text-white font-mono text-xs caret-accent" autocomplete="off" spellcheck="false">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-surface border border-glassBorder rounded-2xl p-6 flex flex-col h-[300px] min-w-0">
+                        <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-book-journal-whills text-purple-500"></i> Quick Journal
+                        </h3>
+                        <textarea id="journal-entry" class="flex-1 w-full bg-void border border-glassBorder rounded-lg p-3 text-sm text-gray-300 focus:outline-none focus:border-accent transition-colors resize-none mb-3 placeholder-gray-700" placeholder="What are you feeling right now?"></textarea>
+                        <button id="save-journal" class="w-full py-2 bg-glassHigh hover:bg-glassBorder border border-glassBorder rounded-lg text-xs font-mono text-white transition-all">
+                            SAVE ENTRY
+                        </button>
+                    </div>
+
+                    <div class="bg-surface border border-glassBorder rounded-2xl p-6 min-w-0">
+                        <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-gold"></i> Achievements
+                        </h3>
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="aspect-square rounded-lg bg-glassBorder flex items-center justify-center text-gray-600 border border-white/5 relative group cursor-help" title="7 Day Streak">
+                                <i class="fa-solid fa-calendar-week text-xl group-hover:text-primary transition-colors"></i>
+                            </div>
+                            <div class="aspect-square rounded-lg bg-glassBorder flex items-center justify-center text-gray-600 border border-white/5 relative group cursor-help" title="Journal 10 Times">
+                                <i class="fa-solid fa-pen-fancy text-xl group-hover:text-secondary transition-colors"></i>
+                            </div>
+                            <div class="aspect-square rounded-lg bg-glassBorder flex items-center justify-center text-gray-600 border border-white/5 relative group cursor-help" title="Panic Button Used">
+                                <i class="fa-solid fa-life-ring text-xl group-hover:text-red-400 transition-colors"></i>
+                            </div>
+                            <div class="aspect-square rounded-lg bg-void/50 flex items-center justify-center text-gray-800 border border-white/5">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ANALYTICS -->
+        <section id="view-analytics" class="view-section hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-1">Analytics Dashboard</h2>
+                <p class="text-gray-500 text-sm">Deep dive into your recovery metrics</p>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-surface border border-glassBorder rounded-xl p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-accent/10 rounded-full blur-2xl"></div>
+                    <div class="relative">
+                        <p class="text-xs text-gray-500 font-mono mb-1">TOTAL RESETS</p>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-relapses">0</h3>
+                        <p class="text-xs text-gray-400">Lifetime count</p>
+                    </div>
+                </div>
+                <div class="bg-surface border border-glassBorder rounded-xl p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-success/10 rounded-full blur-2xl"></div>
+                    <div class="relative">
+                        <p class="text-xs text-gray-500 font-mono mb-1">CHECK-INS</p>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-checkins">0</h3>
+                        <p class="text-xs text-gray-400">Daily commits</p>
+                    </div>
+                </div>
+                <div class="bg-surface border border-glassBorder rounded-xl p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-secondary/10 rounded-full blur-2xl"></div>
+                    <div class="relative">
+                        <p class="text-xs text-gray-500 font-mono mb-1">JOURNAL ENTRIES</p>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-journals">0</h3>
+                        <p class="text-xs text-gray-400">Total logs</p>
+                    </div>
+                </div>
+                <div class="bg-surface border border-glassBorder rounded-xl p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-danger/10 rounded-full blur-2xl"></div>
+                    <div class="relative">
+                        <p class="text-xs text-gray-500 font-mono mb-1">PANIC USES</p>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-panic">0</h3>
+                        <p class="text-xs text-gray-400">Emergency mode</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Streak History Chart -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-accent"></i> Streak Progression
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="streakChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Task Completion Chart -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-secondary"></i> Task Completion
+                    </h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="taskChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-primary"></i> Recent Activity
+                    </h3>
+                    <div class="space-y-3 max-h-64 overflow-y-auto" id="activity-timeline">
+                        <div class="text-center py-8 text-gray-600 text-sm">No activity yet</div>
+                    </div>
+                </div>
+
+                <!-- Insights Panel -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-gold"></i> Insights
+                    </h3>
+                    <div class="space-y-3" id="insights-panel">
+                        <div class="bg-glass border border-glassBorder rounded-lg p-3">
+                            <p class="text-xs text-gray-400 mb-1">PATTERN DETECTED</p>
+                            <p class="text-sm text-gray-300">Keep building your streak!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heatmap Calendar -->
+            <div class="bg-surface border border-glassBorder rounded-2xl p-6">
+                <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-accent"></i> Activity Heatmap
+                </h3>
+                <div id="heatmap-container" class="overflow-x-auto">
+                    <div id="heatmap-grid" class="inline-flex gap-1"></div>
+                </div>
+                <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                    <span>Less</span>
+                    <div class="flex gap-1">
+                        <div class="w-3 h-3 bg-glassBorder rounded-sm"></div>
+                        <div class="w-3 h-3 bg-accent/20 rounded-sm"></div>
+                        <div class="w-3 h-3 bg-accent/50 rounded-sm"></div>
+                        <div class="w-3 h-3 bg-accent/80 rounded-sm"></div>
+                        <div class="w-3 h-3 bg-accent rounded-sm"></div>
+                    </div>
+                    <span>More</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: JOURNAL -->
+        <section id="view-journal" class="view-section hidden animate-fade-in">
+            <div class="max-w-4xl mx-auto">
+                <header class="mb-8 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-1">The Chronicles</h2>
+                        <p class="text-gray-500 text-sm">Record your journey. Identify patterns. Conquer the mind.</p>
+                    </div>
+                    <div class="bg-surface border border-glassBorder p-2 rounded-lg">
+                         <span class="text-xs font-mono text-gray-400">ENTRIES:</span>
+                         <span class="text-white font-bold ml-2" id="total-entries-count">0</span>
+                    </div>
+                </header>
+
+                <!-- Journal Input (Expanded) -->
+                <div class="bg-surface border border-glassBorder rounded-2xl p-6 mb-8">
+                    <textarea id="journal-full-entry" class="w-full h-32 bg-void border border-glassBorder rounded-xl p-4 text-gray-300 focus:outline-none focus:border-secondary transition-colors resize-none mb-4 placeholder-gray-700" placeholder="Write extensively here..."></textarea>
+                    <div class="flex justify-end">
+                        <button id="save-journal-full" class="px-6 py-2 bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/50 rounded-lg text-sm font-bold transition-all">
+                            SAVE LOG
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Entries List -->
+                <div class="space-y-4" id="journal-history-list">
+                    <!-- Populated by JS -->
+                    <div class="text-center py-12 text-gray-600">
+                        <i class="fa-solid fa-wind text-4xl mb-4 opacity-50"></i>
+                        <p>No records found. Begin your story.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: SETTINGS -->
+        <section id="view-settings" class="view-section hidden animate-fade-in">
+            <div class="max-w-2xl mx-auto bg-surface border border-glassBorder rounded-2xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6 border-b border-glassBorder pb-4">Protocol Configuration</h2>
+                
+                <div class="space-y-8">
+                    <!-- Danger Zone -->
+                    <div>
+                        <h3 class="text-red-400 font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
+                        <div class="bg-red-900/10 border border-red-900/30 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-white font-medium">Hard Reset</h4>
+                                <p class="text-xs text-gray-500">Wipes all streaks and data. Irreversible.</p>
+                            </div>
+                            <button onclick="if(confirm('Nuke everything?')) { localStorage.clear(); location.reload(); }" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
+                                NUKE DATA
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Export Data -->
+                    <div>
+                        <h3 class="text-white font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-download"></i> Data Export</h3>
+                        <div class="bg-glass rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-white font-medium">Backup Protocol</h4>
+                                <p class="text-xs text-gray-500">Download your journal and streak data.</p>
+                            </div>
+                            <button id="export-data-btn" class="px-4 py-2 bg-glassBorder hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors">
+                                EXPORT JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Import Data -->
+                    <div>
+                        <h3 class="text-white font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-upload"></i> Data Import</h3>
+                        <div class="bg-glass rounded-xl p-4">
+                            <input type="file" id="import-file" accept=".json" class="hidden">
+                            <button onclick="document.getElementById('import-file').click()" class="w-full px-4 py-2 bg-glassBorder hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors">
+                                IMPORT BACKUP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Full Screen Emergency Overlay (Same as before) -->
+    <div id="emergency-overlay" class="fixed inset-0 z-[100] bg-void/95 backdrop-blur-2xl flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-700">
+        <div class="absolute top-6 right-6">
+            <button id="close-emergency" class="text-gray-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-3xl"></i></button>
+        </div>
+        <div class="relative mb-12">
+            <div class="absolute inset-0 bg-accent/20 blur-3xl rounded-full animate-pulse"></div>
+            <div id="breath-circle" class="w-64 h-64 rounded-full border-4 border-white/10 flex items-center justify-center relative z-10">
+                <div class="w-full h-full bg-gradient-to-br from-primary to-accent rounded-full opacity-20 scale-50"></div>
+                <span id="breath-instruction" class="text-4xl font-bold text-white font-mono tracking-widest absolute">BREATHE</span>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-white mb-4">Control Your Mind</h2>
+        <div class="flex gap-4">
+            <button class="px-8 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all" onclick="window.open('https://www.youtube.com/watch?v=inpok4MKVLM', '_blank')">
+                <i class="fa-brands fa-youtube"></i> Motivation
+            </button>
+            <button id="emergency-calm-btn" class="px-8 py-3 rounded-full bg-accent text-void font-bold hover:bg-cyan-400 transition-all shadow-glow">
+                I Am Calm
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
