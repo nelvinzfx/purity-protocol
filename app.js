@@ -154,8 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     startTimer();
     initChart();
     initAnalytics();
-    renderJournalHistory(); // Init journal list
-    initCLI(); // Start interactive terminal
+    renderJournalHistory();
+    initCLI();
+    Modal.init();
 });
 
 // --- CLI / Terminal Logic ---
@@ -472,8 +473,21 @@ function initUI() {
     // Profile handlers
     const saveProfileBtn = document.getElementById('save-profile-btn');
     const addCustomBtn = document.getElementById('add-custom-addiction');
+    const nukeDataBtn = document.getElementById('nuke-data-btn');
     if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
     if (addCustomBtn) addCustomBtn.addEventListener('click', addCustomAddiction);
+    if (nukeDataBtn) {
+        nukeDataBtn.addEventListener('click', () => {
+            Modal.confirm(
+                'Nuclear Option',
+                'This will permanently delete ALL your data including streaks, journals, and settings. This action CANNOT be undone. Are you absolutely sure?',
+                () => {
+                    localStorage.clear();
+                    location.reload();
+                }
+            );
+        });
+    }
 }
 
 // --- Navigation Logic ---
@@ -599,23 +613,27 @@ function updateRank(days) {
 }
 
 function confirmRelapse() {
-    if (confirm("Are you sure? This will reset your streak to zero.")) {
-        const daysBefore = Math.floor(moment.duration(moment().diff(moment(state.startDate))).asDays());
-        state.relapseHistory.push({ date: new Date().toISOString(), daysBefore });
-        state.startDate = new Date().toISOString();
-        state.lastCheckin = null;
-        logActivity('relapse', `Streak reset after ${daysBefore} days`);
-        saveState();
-        renderChecklist();
-        updateAnalytics();
-        
-        anime({
-            targets: 'body',
-            backgroundColor: ['#300', '#030304'],
-            duration: 500,
-            easing: 'easeOutQuad'
-        });
-    }
+    Modal.confirm(
+        'Reset Streak?',
+        'Are you sure you want to reset your streak to zero? This action cannot be undone.',
+        () => {
+            const daysBefore = Math.floor(moment.duration(moment().diff(moment(state.startDate))).asDays());
+            state.relapseHistory.push({ date: new Date().toISOString(), daysBefore });
+            state.startDate = new Date().toISOString();
+            state.lastCheckin = null;
+            logActivity('relapse', `Streak reset after ${daysBefore} days`);
+            saveState();
+            renderChecklist();
+            updateAnalytics();
+            
+            anime({
+                targets: 'body',
+                backgroundColor: ['#300', '#030304'],
+                duration: 500,
+                easing: 'easeOutQuad'
+            });
+        }
+    );
 }
 
 function dailyCheckin() {
@@ -642,7 +660,7 @@ function dailyCheckin() {
             els.checkinBtn.classList.remove('bg-green-500', 'text-white');
         }, 3000);
     } else {
-        alert("You've already committed for today. Stay strong.");
+        Modal.info('Already Committed', "You've already completed your daily check-in. Stay strong!");
     }
 }
 
@@ -723,17 +741,11 @@ function saveJournalEntry(inputElement) {
     
     inputElement.value = '';
     
-    // Refresh Journal View
     renderJournalHistory();
     updateAnalytics();
     checkAchievements();
     
-    // Visual Feedback (Toast)
-    const originalText = inputElement.nextElementSibling.innerText;
-    // Simplistic: assuming button is next sibling or close.
-    // Actually we passed the input, finding button is tricky unless we passed it too.
-    // Let's just reload the list and maybe show an alert or simple anime effect.
-    alert("Entry Logged.");
+    Modal.success('Entry Saved', 'Your journal entry has been recorded successfully.');
 }
 
 function renderJournalHistory() {
@@ -784,11 +796,15 @@ function renderJournalHistory() {
 }
 
 window.deleteEntry = function(id) {
-    if(confirm('Delete this entry?')) {
-        state.journalEntries = state.journalEntries.filter(e => e.id !== id);
-        saveState();
-        renderJournalHistory();
-    }
+    Modal.confirm(
+        'Delete Entry?',
+        'Are you sure you want to delete this journal entry? This cannot be undone.',
+        () => {
+            state.journalEntries = state.journalEntries.filter(e => e.id !== id);
+            saveState();
+            renderJournalHistory();
+        }
+    );
 };
 
 // --- Emergency Mode ---
@@ -1195,13 +1211,17 @@ function importData(e) {
     reader.onload = (event) => {
         try {
             const imported = JSON.parse(event.target.result);
-            if (confirm('This will overwrite all current data. Continue?')) {
-                state = imported;
-                saveState();
-                location.reload();
-            }
+            Modal.confirm(
+                'Import Data?',
+                'This will overwrite all current data. Are you sure you want to continue?',
+                () => {
+                    state = imported;
+                    saveState();
+                    location.reload();
+                }
+            );
         } catch (err) {
-            alert('Invalid backup file');
+            Modal.error('Invalid File', 'The backup file is corrupted or invalid. Please select a valid JSON backup.');
         }
     };
     reader.readAsText(file);
@@ -1411,7 +1431,7 @@ function saveProfile() {
     updateProfileUI();
     logActivity('profile', 'Profile updated');
     
-    alert('Profile saved!');
+    Modal.success('Profile Updated', 'Your profile settings have been saved successfully.');
 }
 
 function addCustomAddiction() {
@@ -1427,4 +1447,111 @@ function addCustomAddiction() {
 window.removeCustomAddiction = function(type) {
     state.profile.addictionTypes = state.profile.addictionTypes.filter(t => t !== type);
     renderProfileSettings();
+};
+
+// --- Modal System ---
+const Modal = {
+    overlay: null,
+    container: null,
+    
+    init() {
+        this.overlay = document.getElementById('modal-overlay');
+        this.container = document.getElementById('modal-container');
+        
+        document.getElementById('modal-close').addEventListener('click', () => this.close());
+        this.overlay.addEventListener('click', (e) => {
+            if (e.target === this.overlay) this.close();
+        });
+    },
+    
+    show({ title, message, type = 'info', buttons = [] }) {
+        const icon = document.getElementById('modal-icon');
+        const titleEl = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        const footer = document.getElementById('modal-footer');
+        
+        // Set icon and color based on type
+        const types = {
+            success: { icon: 'fa-check-circle', color: 'bg-success/20 text-success', iconClass: 'fa-solid fa-check-circle text-success' },
+            error: { icon: 'fa-circle-xmark', color: 'bg-danger/20 text-danger', iconClass: 'fa-solid fa-circle-xmark text-danger' },
+            warning: { icon: 'fa-triangle-exclamation', color: 'bg-gold/20 text-gold', iconClass: 'fa-solid fa-triangle-exclamation text-gold' },
+            info: { icon: 'fa-circle-info', color: 'bg-accent/20 text-accent', iconClass: 'fa-solid fa-circle-info text-accent' },
+            confirm: { icon: 'fa-circle-question', color: 'bg-secondary/20 text-secondary', iconClass: 'fa-solid fa-circle-question text-secondary' }
+        };
+        
+        const config = types[type] || types.info;
+        icon.className = `w-10 h-10 rounded-full flex items-center justify-center ${config.color}`;
+        icon.innerHTML = `<i class="${config.iconClass} text-xl"></i>`;
+        
+        titleEl.textContent = title;
+        body.innerHTML = `<p class="text-gray-300 leading-relaxed">${message}</p>`;
+        
+        // Render buttons
+        footer.innerHTML = '';
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = btn.className || 'px-6 py-2 rounded-lg font-medium transition-all';
+            button.textContent = btn.text;
+            button.onclick = () => {
+                if (btn.onClick) btn.onClick();
+                this.close();
+            };
+            footer.appendChild(button);
+        });
+        
+        // Show modal with animation
+        this.overlay.style.pointerEvents = 'auto';
+        requestAnimationFrame(() => {
+            this.overlay.style.opacity = '1';
+            this.container.style.transform = 'scale(1)';
+        });
+    },
+    
+    close() {
+        this.overlay.style.opacity = '0';
+        this.container.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.overlay.style.pointerEvents = 'none';
+        }, 300);
+    },
+    
+    // Helper methods
+    success(title, message) {
+        this.show({
+            title,
+            message,
+            type: 'success',
+            buttons: [{ text: 'OK', className: 'bg-success hover:bg-green-600 text-white' }]
+        });
+    },
+    
+    error(title, message) {
+        this.show({
+            title,
+            message,
+            type: 'error',
+            buttons: [{ text: 'OK', className: 'bg-danger hover:bg-red-600 text-white' }]
+        });
+    },
+    
+    confirm(title, message, onConfirm) {
+        this.show({
+            title,
+            message,
+            type: 'confirm',
+            buttons: [
+                { text: 'Cancel', className: 'bg-glass hover:bg-glassHigh text-gray-300 border border-glassBorder' },
+                { text: 'Confirm', className: 'bg-accent hover:bg-cyan-400 text-void font-bold', onClick: onConfirm }
+            ]
+        });
+    },
+    
+    info(title, message) {
+        this.show({
+            title,
+            message,
+            type: 'info',
+            buttons: [{ text: 'Got it', className: 'bg-accent hover:bg-cyan-400 text-void font-bold' }]
+        });
+    }
 };

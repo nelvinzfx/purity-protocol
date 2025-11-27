@@ -818,7 +818,7 @@
                                 <h4 class="text-white font-medium">Hard Reset</h4>
                                 <p class="text-xs text-gray-500">Wipes all streaks and data. Irreversible.</p>
                             </div>
-                            <button onclick="if(confirm('Nuke everything?')) { localStorage.clear(); location.reload(); }" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
+                            <button id="nuke-data-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
                                 NUKE DATA
                             </button>
                         </div>
@@ -910,6 +910,28 @@
             <button id="emergency-calm-btn" class="px-8 py-3 rounded-full bg-accent text-void font-bold hover:bg-cyan-400 transition-all shadow-glow">
                 I Am Calm
             </button>
+        </div>
+    </div>
+
+    <!-- Universal Modal System -->
+    <div id="modal-overlay" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+        <div id="modal-container" class="bg-surface/90 backdrop-blur-xl border border-glassBorder rounded-2xl shadow-2xl max-w-md w-full mx-4 transform scale-95 transition-all duration-300">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-glassBorder flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon" class="w-10 h-10 rounded-full flex items-center justify-center"></div>
+                    <h3 id="modal-title" class="text-xl font-bold text-white"></h3>
+                </div>
+                <button id="modal-close" class="text-gray-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div id="modal-body" class="p-6 text-gray-300"></div>
+            
+            <!-- Modal Footer -->
+            <div id="modal-footer" class="p-6 border-t border-glassBorder flex gap-3 justify-end"></div>
         </div>
     </div>
 
